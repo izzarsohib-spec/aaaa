@@ -71,6 +71,9 @@ export function toProductDto(p: Product, role: Role) {
     sku: p.sku,
     name: p.name,
     unit: p.unit,
+    category: p.category,
+    description: p.description,
+    image_url: p.imageUrl,
     selling_price: p.sellingPrice,
     current_stock: p.currentStock,
   };
@@ -105,6 +108,9 @@ export const productService = {
       costPrice: input.cost_price,
       sellingPrice: input.selling_price,
       currentStock: input.current_stock,
+      category: input.category,
+      description: input.description || null,
+      imageUrl: input.image_url || null,
     });
     return toProductDto(p, role);
   },
@@ -122,6 +128,9 @@ export const productService = {
         ...(input.sku !== undefined && { sku: input.sku }),
         ...(input.name !== undefined && { name: input.name }),
         ...(input.unit !== undefined && { unit: input.unit }),
+        ...(input.category !== undefined && { category: input.category }),
+        ...(input.description !== undefined && { description: input.description || null }),
+        ...(input.image_url !== undefined && { imageUrl: input.image_url || null }),
         costPrice: cost,
         sellingPrice: price,
       });

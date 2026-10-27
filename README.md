@@ -58,3 +58,16 @@ Urutan deploy: build -> **jalankan migrasi** -> restart/aktifkan versi baru -> s
 - Error tracker (Sentry) belum dipasang; ekspor/impor dan job latar belum ada (tidak diminta di MVP).
 - Cetak nota memakai dialog cetak browser (keputusan PRD, printer thermal ditunda).
 - `TEST-PLAN.md` yang dirujuk PRD tidak ada di folder ini; seed uji memakai bagian "Data uji" PRD.
+
+## Toko online
+
+- Publik (tanpa login): `/`, `/katalog`, `/produk?id=`, `/keranjang`, `/checkout`, `/pembayaran?no=`, `/pesanan`, `/panduan-ukuran`, `/grosir`, `/bantuan`, `/tentang`.
+- API publik: `GET /api/shop/products`, `GET /api/shop/products/:id`, `POST /api/shop/orders`, `POST /api/shop/orders/lookup`, `POST /api/shop/orders/pay` (dibatasi 20 tulis/menit/IP). Harga dan ongkir selalu dihitung ulang di server; `cost_price` tidak pernah dikirim.
+- Pelacakan pesanan butuh nomor pesanan DAN nomor WhatsApp. Nomor HP disimpan satu bentuk (`+62...`).
+- Admin/kasir: menu "Pesanan Online" (`/orders`, `GET /api/orders`, `PATCH /api/orders/:id` dengan `action` confirm_payment, ship, complete, cancel). Batal hanya ADMIN.
+- **Isi data toko asli** di `src/lib/shop.ts`: nomor WhatsApp, email, alamat, rekening bank. Nilainya sekarang PLACEHOLDER.
+- Foto produk: isi `image_url` (alamat https) di form produk; kosong = ilustrasi bawaan. Unggah file belum ada (butuh storage).
+
+## Demo statis (GitHub Pages)
+
+`node scripts/build-demo.mjs` membuat `.demo-out/` (data contoh di localStorage, tanpa database), lalu dipublikasikan ke branch `gh-pages`. Alamat: https://izzarsohib-spec.github.io/aaaa/

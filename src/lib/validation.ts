@@ -24,6 +24,9 @@ export const productCreateSchema = z.object({
   unit: z.string().trim().min(1, "Satuan wajib diisi").max(20).default("pcs"),
   cost_price: rupiah("Harga modal"),
   selling_price: rupiah("Harga jual"),
+  category: z.string().trim().min(1).max(50).default("Lainnya"),
+  description: z.string().trim().max(1000).optional(),
+  image_url: z.string().trim().url("URL gambar tidak valid").max(500).optional().or(z.literal("")),
   current_stock: z.number().int("Stok harus bilangan bulat").min(0, "Stok tidak boleh negatif").max(1_000_000).default(0),
 });
 
@@ -32,6 +35,9 @@ export const productUpdateSchema = z
     sku: z.string().trim().min(1, "SKU wajib diisi").max(50),
     name: z.string().trim().min(1, "Nama produk wajib diisi").max(200),
     unit: z.string().trim().min(1).max(20),
+    category: z.string().trim().min(1).max(50),
+    description: z.string().trim().max(1000),
+    image_url: z.string().trim().url("URL gambar tidak valid").max(500).or(z.literal("")),
     cost_price: rupiah("Harga modal"),
     selling_price: rupiah("Harga jual"),
   })

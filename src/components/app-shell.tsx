@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, type ReactNode } from "react";
-import { Button } from "@/components/ui";
 import { api } from "@/lib/client";
 
 export interface SessionInfo {
@@ -16,6 +15,7 @@ export const useSession = () => useContext(SessionCtx);
 const NAV = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/sales/pos", label: "Kasir" },
+  { href: "/orders", label: "Pesanan Online" },
   { href: "/sales", label: "Riwayat" },
   { href: "/products", label: "Produk" },
   { href: "/stock", label: "Stok" },
@@ -37,10 +37,10 @@ export function AppShell({ session, children }: { session: SessionInfo; children
 
   return (
     <SessionCtx.Provider value={session}>
-      <header className="no-print sticky top-0 z-30 border-b border-border bg-surface">
+      <header className="no-print sticky top-0 z-30 bg-navy text-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
-          <Link href="/dashboard" className="font-semibold tracking-tight text-accent">
-            Adzkia Collection
+          <Link href="/dashboard" className="text-lg font-bold tracking-tight">
+            ADZKIA <span className="text-gold">COLLECTION</span>
           </Link>
           <nav aria-label="Menu utama" className="order-3 flex w-full gap-1 overflow-x-auto md:order-none md:w-auto">
             {NAV.filter((n) => !n.adminOnly || session.role === "ADMIN").map((n) => (
@@ -48,19 +48,25 @@ export function AppShell({ session, children }: { session: SessionInfo; children
                 key={n.href}
                 href={n.href}
                 aria-current={active(n.href) ? "page" : undefined}
-                className="whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-muted hover:bg-zinc-100 aria-[current=page]:bg-accent-soft aria-[current=page]:text-teal-900"
+                className="whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium text-blue-100 hover:bg-white/10 aria-[current=page]:bg-white/15 aria-[current=page]:text-white"
               >
                 {n.label}
               </Link>
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-3 text-sm">
-            <span className="hidden sm:inline">
-              {session.name} <span className="text-muted">({session.role === "ADMIN" ? "Pemilik" : "Kasir"})</span>
+            <Link href="/" className="hidden rounded-md px-3 py-2 text-blue-100 hover:bg-white/10 lg:inline">
+              Lihat toko
+            </Link>
+            <span className="hidden xl:inline">
+              {session.name} <span className="text-blue-200">({session.role === "ADMIN" ? "Pemilik" : "Kasir"})</span>
             </span>
-            <Button variant="secondary" onClick={logout}>
+            <button
+              onClick={logout}
+              className="inline-flex min-h-10 items-center rounded-md border border-white/30 px-4 text-sm font-medium hover:bg-white/10"
+            >
               Keluar
-            </Button>
+            </button>
           </div>
         </div>
       </header>

@@ -15,6 +15,14 @@ export const userRole = pgEnum("UserRole", ["ADMIN", "STAFF"]);
 export const stockAdjustmentType = pgEnum("StockAdjustmentType", ["IN", "OUT", "ADJUSTMENT"]);
 export const saleStatus = pgEnum("SaleStatus", ["COMPLETED", "CANCELLED"]);
 export const paymentMethod = pgEnum("PaymentMethod", ["CASH", "TRANSFER"]);
+export const orderStatus = pgEnum("OrderStatus", [
+  "MENUNGGU_PEMBAYARAN",
+  "MENUNGGU_KONFIRMASI",
+  "DIPROSES",
+  "DIKIRIM",
+  "SELESAI",
+  "DIBATALKAN",
+]);
 
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 const updatedAt = () =>
@@ -46,6 +54,9 @@ export const products = pgTable(
     costPrice: integer("cost_price").notNull().default(0),
     sellingPrice: integer("selling_price").notNull().default(0),
     currentStock: integer("current_stock").notNull().default(0),
+    category: text("category").notNull().default("Lainnya"),
+    description: text("description"),
+    imageUrl: text("image_url"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
@@ -57,6 +68,7 @@ export const products = pgTable(
       .where(sql`${t.deletedAt} IS NULL`),
     index("products_deleted_at_idx").on(t.deletedAt),
     index("products_name_idx").on(t.name.asc()),
+    index("products_category_idx").on(t.category),
     check("products_cost_price_nonneg", sql`${t.costPrice} >= 0`),
     check("products_price_gte_cost", sql`${t.sellingPrice} >= ${t.costPrice}`),
     check("products_stock_nonneg", sql`${t.currentStock} >= 0`),
@@ -136,3 +148,70 @@ export const saleItems = pgTable(
 export type User = typeof users.$inferSelect;
 export type Product = typeof products.$inferSelect;
 export type Sale = typeof sales.$inferSelect;
+
+export const orders = pgTable(
+  "orders",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orderNumber: text("order_number").notNull().unique(),
+    customerName: text("customer_name").notNull(),
+    phone: text("phone").notNull(),
+    address: text("address").notNull(),
+    city: text("city").notNull(),
+    postalCode: text("postal_code"),
+    shippingMethod: text("shipping_method").notNull(),
+    shippingCost: integer("shipping_cost").notNull().default(0),
+    subtotal: integer("subtotal").notNull().default(0),
+    totalAmount: integer("total_amount").notNull().default(0),
+    status: orderStatus("status").notNull().default("MENUNGGU_PEMBAYARAN"),
+    notes: text("notes"),
+    trackingNumber: text("tracking_number"),
+    saleId: uuid("sale_id").references(() => sales.id, fk),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index("orders_status_created_idx").on(t.status, t.createdAt),
+    index("orders_sale_id_idx").on(t.saleId),
+    check("orders_amounts_nonneg", sql`${t.shippingCost} >= 0 AND ${t.subtotal} >= 0 AND ${t.totalAmount} >= 0`),
+  ],
+);
+
+export const orderItems = pgTable(
+  "order_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, fk),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, fk),
+    sku: text("sku").notNull(),
+    name: text("name").notNull(),
+    quantity: integer("quantity").notNull(),
+    unitPrice: integer("unit_price").notNull(),
+    unitCost: integer("unit_cost").notNull(),
+    subtotal: integer("subtotal").notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index("order_items_order_id_idx").on(t.orderId),
+    index("order_items_product_id_idx").on(t.productId),
+    check("order_items_qty_pos", sql`${t.quantity} > 0`),
+  ],
+);
+
+export const orderEvents = pgTable(
+  "order_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, fk),
+    status: orderStatus("status").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("order_events_order_id_idx").on(t.orderId, t.createdAt)],
+);

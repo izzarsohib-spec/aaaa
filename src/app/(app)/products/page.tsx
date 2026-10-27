@@ -12,6 +12,7 @@ import {
   Field,
   Input,
   Pagination,
+  Select,
   TableSkeleton,
   TableWrap,
   Td,
@@ -19,6 +20,7 @@ import {
   useToast,
 } from "@/components/ui";
 import { formatRupiah } from "@/lib/calculations";
+import { CATEGORIES } from "@/lib/shop";
 import { ApiError, api, type Paged } from "@/lib/client";
 
 interface Product {
@@ -26,6 +28,9 @@ interface Product {
   sku: string;
   name: string;
   unit: string;
+  category?: string;
+  description?: string | null;
+  image_url?: string | null;
   cost_price?: number;
   selling_price: number;
   current_stock: number;
@@ -214,6 +219,9 @@ function ProductDialog({
       sku: String(f.get("sku")),
       name: String(f.get("name")),
       unit: String(f.get("unit")),
+      category: String(f.get("category")),
+      description: String(f.get("description") ?? ""),
+      image_url: String(f.get("image_url") ?? ""),
       cost_price: Number(f.get("cost_price")),
       selling_price: Number(f.get("selling_price")),
     };
@@ -250,6 +258,23 @@ function ProductDialog({
         </div>
         <Field label="Nama produk" error={errors.name}>
           {(a) => <Input {...a} name="name" defaultValue={p?.name} required maxLength={200} />}
+        </Field>
+        <Field label="Kategori toko online" error={errors.category}>
+          {(a) => (
+            <Select {...a} name="category" defaultValue={p?.category ?? "Seragam Satpam"}>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </Select>
+          )}
+        </Field>
+        <Field label="Deskripsi (tampil di toko online)" error={errors.description}>
+          {(a) => <Input {...a} name="description" defaultValue={p?.description ?? ""} maxLength={1000} />}
+        </Field>
+        <Field label="URL gambar (opsional)" hint="Alamat https:// ke foto produk. Kosongkan untuk ilustrasi bawaan." error={errors.image_url}>
+          {(a) => <Input {...a} name="image_url" type="url" defaultValue={p?.image_url ?? ""} />}
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Modal / HPP (Rp)" error={errors.cost_price}>

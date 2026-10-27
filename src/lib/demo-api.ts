@@ -6,21 +6,25 @@
  */
 import { calculateSubtotal, jakartaDayRange, PRICE_BELOW_COST_MESSAGE } from "./calculations";
 import { ApiError } from "./client";
+import { NOT_HANDLED, demoShop } from "./demo-shop";
 
 type Role = "ADMIN" | "STAFF";
 interface DUser { id: string; email: string; name: string; role: Role; password: string }
-interface DProduct { id: string; sku: string; name: string; unit: string; cost_price: number; selling_price: number; current_stock: number; deleted: boolean }
+interface DProduct { id: string; sku: string; name: string; unit: string; category: string; description: string | null; image_url: string | null; cost_price: number; selling_price: number; current_stock: number; deleted: boolean }
 interface DItem { id: string; product_id: string; sku: string; name: string; unit: string; quantity: number; cost_price_at_sale: number; selling_price_at_sale: number; subtotal: number }
 interface DSale { id: string; invoice_number: string; user_id: string; cashier_name: string; total_amount: number; status: "COMPLETED" | "CANCELLED"; payment_method: "CASH" | "TRANSFER"; notes: string | null; created_at: string; items: DItem[] }
 interface DAdj { id: string; product_id: string; product_name: string; sku: string; user_id: string; user_name: string; type: "IN" | "OUT" | "ADJUSTMENT"; quantity: number; notes: string; created_at: string }
-interface Store { users: DUser[]; products: DProduct[]; sales: DSale[]; adjustments: DAdj[]; session: { userId: string } | null }
+interface DOrderItem { id: string; product_id: string; sku: string; name: string; quantity: number; unit_price: number; unit_cost: number; subtotal: number }
+type OrderStatus = "MENUNGGU_PEMBAYARAN" | "MENUNGGU_KONFIRMASI" | "DIPROSES" | "DIKIRIM" | "SELESAI" | "DIBATALKAN";
+interface DOrder { id: string; order_number: string; status: OrderStatus; customer_name: string; phone: string; address: string; city: string; postal_code: string | null; shipping_method: string; shipping_cost: number; subtotal: number; total_amount: number; notes: string | null; tracking_number: string | null; sale_id: string | null; created_at: string; items: DOrderItem[]; events: { status: OrderStatus; created_at: string }[] }
+export interface Store { users: DUser[]; products: DProduct[]; sales: DSale[]; adjustments: DAdj[]; orders: DOrder[]; session: { userId: string } | null }
 
-const KEY = "adzkia-demo-v1";
+const KEY = "adzkia-demo-v2";
 const uid = () => crypto.randomUUID();
 
 function seed(): Store {
-  const p = (sku: string, name: string, unit: string, cost: number, price: number, stock: number): DProduct => ({
-    id: uid(), sku, name, unit, cost_price: cost, selling_price: price, current_stock: stock, deleted: false,
+  const p = (sku: string, name: string, unit: string, cost: number, price: number, stock: number, category: string, description: string): DProduct => ({
+    id: uid(), sku, name, unit, category, description, image_url: null, cost_price: cost, selling_price: price, current_stock: stock, deleted: false,
   });
   return {
     users: [
@@ -28,16 +32,18 @@ function seed(): Store {
       { id: uid(), email: "kasir@demo.id", name: "Kasir Demo", role: "STAFF", password: "demo1234" },
     ],
     products: [
-      p("SRG-001", "Baju Satpam Lengan Pendek", "pcs", 85000, 125000, 24),
-      p("SRG-002", "Celana Satpam Hitam", "pcs", 75000, 110000, 18),
-      p("TPI-001", "Topi Satpam Baret", "pcs", 20000, 35000, 40),
-      p("SPT-001", "Sepatu PDL Satpam", "pasang", 140000, 210000, 3),
-      p("ATR-001", "Ikat Pinggang Satpam", "pcs", 18000, 30000, 30),
-      p("ATR-002", "Papan Nama Satpam", "pcs", 6000, 15000, 0),
-      p("ATR-003", "Peluit dan Tali", "set", 9000, 18000, 55),
+      p("SRG-001", "Baju Satpam Lengan Pendek", "pcs", 85000, 125000, 24, "Seragam Satpam", "Baju satpam lengan pendek bahan nyaman dan tahan lama, cocok untuk dinas harian."),
+      p("SRG-002", "Celana Satpam Hitam", "pcs", 75000, 110000, 18, "Celana", "Celana satpam hitam potongan standar, bahan adem dan tidak mudah kusut."),
+      p("TPI-001", "Topi Satpam Baret", "pcs", 20000, 35000, 40, "Topi", "Topi baret satpam dengan lambang, ukuran dapat disesuaikan."),
+      p("SPT-001", "Sepatu PDL Satpam", "pasang", 140000, 210000, 3, "Sepatu", "Sepatu PDL kulit sintetis, sol anti slip, nyaman dipakai berjaga lama."),
+      p("ATR-001", "Ikat Pinggang Satpam", "pcs", 18000, 30000, 30, "Atribut", "Ikat pinggang satpam dengan kepala gesper logam."),
+      p("ATR-002", "Papan Nama Satpam", "pcs", 6000, 15000, 0, "Atribut", "Papan nama bordir sesuai nama petugas."),
+      p("ATR-003", "Peluit dan Tali", "set", 9000, 18000, 55, "Atribut", "Peluit logam dan tali kur."),
+      p("PKT-001", "Paket Seragam Satpam Lengkap", "paket", 235000, 330000, 12, "Paket Hemat", "Paket hemat: baju, celana, topi, ikat pinggang, dan peluit."),
     ],
     sales: [],
     adjustments: [],
+    orders: [],
     session: null,
   };
 }
@@ -45,7 +51,10 @@ function seed(): Store {
 function load(): Store {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw) as Store;
+    if (raw) {
+      const parsed = JSON.parse(raw) as Store;
+      if (parsed.orders) return parsed;
+    }
   } catch { /* abaikan */ }
   const s = seed();
   save(s);
@@ -92,6 +101,9 @@ export async function demoApi(path: string, method: string, body: unknown): Prom
   const me = st.users.find((u) => u.id === st.session?.userId) ?? null;
   const b = (body ?? {}) as Record<string, unknown>;
 
+  const shop = demoShop(pathname, { st, me, q, b, method, save, fail, page });
+  if (shop !== NOT_HANDLED) return shop;
+
   if (pathname === "/api/auth/login") {
     const u = st.users.find((x) => x.email === String(b.email ?? "").trim().toLowerCase() && x.password === b.password);
     if (!u) throw fail(401, "INVALID_CREDENTIALS", "Email atau password salah");
@@ -129,7 +141,7 @@ export async function demoApi(path: string, method: string, body: unknown): Prom
     if (st.products.some((p) => !p.deleted && p.sku.toLowerCase() === sku.toLowerCase())) {
       throw fail(409, "SKU_ALREADY_EXISTS", "SKU sudah dipakai produk lain", { sku: "SKU sudah dipakai produk lain" });
     }
-    const p: DProduct = { id: uid(), sku, name: String(b.name).trim(), unit: String(b.unit || "pcs"), cost_price: cost, selling_price: price, current_stock: Math.max(0, Number(b.current_stock) || 0), deleted: false };
+    const p: DProduct = { id: uid(), sku, name: String(b.name).trim(), unit: String(b.unit || "pcs"), category: String(b.category || "Lainnya"), description: String(b.description ?? "") || null, image_url: String(b.image_url ?? "") || null, cost_price: cost, selling_price: price, current_stock: Math.max(0, Number(b.current_stock) || 0), deleted: false };
     st.products.push(p);
     save(st);
     return toDto(p, me.role);
@@ -147,7 +159,7 @@ export async function demoApi(path: string, method: string, body: unknown): Prom
     if (st.products.some((x) => x.id !== p.id && !x.deleted && x.sku.toLowerCase() === sku.toLowerCase())) {
       throw fail(409, "SKU_ALREADY_EXISTS", "SKU sudah dipakai produk lain", { sku: "SKU sudah dipakai produk lain" });
     }
-    Object.assign(p, { sku, name: b.name !== undefined ? String(b.name).trim() : p.name, unit: b.unit !== undefined ? String(b.unit) : p.unit, cost_price: cost, selling_price: price });
+    Object.assign(p, { sku, name: b.name !== undefined ? String(b.name).trim() : p.name, unit: b.unit !== undefined ? String(b.unit) : p.unit, category: b.category !== undefined ? String(b.category) : p.category, description: b.description !== undefined ? String(b.description) || null : p.description, image_url: b.image_url !== undefined ? String(b.image_url) || null : p.image_url, cost_price: cost, selling_price: price });
     save(st);
     return toDto(p, me.role);
   }

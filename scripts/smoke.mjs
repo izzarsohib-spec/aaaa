@@ -121,6 +121,33 @@ check("produk hilang dari daftar", r.json.data.items.length === 0);
 r = await admin("/api/products", { method: "POST", body: { sku: SKU, name: "Pakai ulang SKU", cost_price: 1, selling_price: 2 } });
 check("SKU bekas soft-delete boleh dibuat ulang", r.status === 201, JSON.stringify(r.json));
 
+// --- toko online (publik)
+r = await anon("/api/shop/products?limit=5");
+check("katalog publik tanpa login -> 200, tanpa cost_price", r.status === 200 && r.json.data.items.length > 0 && r.json.data.items.every((i) => !("cost_price" in i)), JSON.stringify(r.json).slice(0, 200));
+const shopProduct = (await admin("/api/products", { method: "POST", body: { sku: "SHP-" + suffix, name: "Produk Toko Smoke", category: "Topi", cost_price: 20000, selling_price: 35000, current_stock: 5 } })).json.data;
+const phone = "0812" + Date.now().toString().slice(-8);
+r = await anon("/api/shop/orders", { method: "POST", body: { customer_name: "Budi Smoke", phone, address: "Jl. Merdeka 1", city: "Semarang", shipping_method: "JNE_REG", items: [{ product_id: shopProduct.id, quantity: 2 }] } });
+check("pesanan publik -> 201, total 70000 + ongkir 25000", r.status === 201 && r.json.data.total_amount === 95000 && r.json.data.status === "MENUNGGU_PEMBAYARAN", JSON.stringify(r.json));
+const order = r.json.data;
+r = await admin("/api/products?search=SHP-" + suffix);
+check("stok produk toko terpotong (reservasi)", r.json.data.items[0].current_stock === 3);
+r = await anon("/api/shop/orders/lookup", { method: "POST", body: { order_number: order.order_number, phone: "081200000000" } });
+check("lacak dengan HP salah -> 404", r.status === 404);
+r = await anon("/api/shop/orders/lookup", { method: "POST", body: { order_number: order.order_number, phone } });
+check("lacak dengan HP benar -> 200", r.status === 200 && r.json.data.order_number === order.order_number);
+r = await anon("/api/orders");
+check("daftar pesanan admin tanpa login -> 401", r.status === 401);
+r = await anon("/api/shop/orders", { method: "POST", body: { customer_name: "X", phone: "1", address: "a", city: "b", shipping_method: "XX", items: [] } });
+check("pesanan tidak valid -> 400 dengan errors per field", r.status === 400 && r.json.errors?.phone, JSON.stringify(r.json));
+r = await staff("/api/orders/" + order.id, { method: "PATCH", body: { action: "confirm_payment" } });
+check("staf konfirmasi pembayaran -> 200 DIPROSES", r.status === 200 && r.json.data.status === "DIPROSES", JSON.stringify(r.json));
+r = await staff("/api/orders/" + order.id, { method: "PATCH", body: { action: "cancel" } });
+check("staf batalkan pesanan -> 403", r.status === 403);
+r = await admin("/api/orders/" + order.id, { method: "PATCH", body: { action: "cancel" } });
+check("admin batalkan -> DIBATALKAN, stok kembali", r.status === 200 && r.json.data.status === "DIBATALKAN");
+r = await admin("/api/products?search=SHP-" + suffix);
+check("stok kembali 5", r.json.data.items[0].current_stock === 5);
+
 // --- misc
 r = await admin("/api/products?limit=9999");
 check("limit > 100 dipotong ke 100", r.status === 200 && r.json.data.limit === 100);

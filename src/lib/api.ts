@@ -125,7 +125,9 @@ function build<C>(opts: Options, handler: Handler<C>) {
         }
         if (mutating) limit("w:" + session.userId, RATE.write.max, RATE.write.windowMs);
         else limit("r:" + ip, RATE.read.max, RATE.read.windowMs);
-      } else if (!mutating) {
+      } else if (mutating) {
+        limit("wp:" + ip, RATE.write.max, RATE.write.windowMs);
+      } else {
         limit("r:" + ip, RATE.read.max, RATE.read.windowMs);
       }
 

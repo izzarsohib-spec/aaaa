@@ -15,9 +15,6 @@ const nextConfig: NextConfig = {
       "*.css": { loaders: ["@tailwindcss/turbopack"], as: "*.css" },
     },
   },
-  async redirects() {
-    return [{ source: "/", destination: "/dashboard", permanent: false }];
-  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

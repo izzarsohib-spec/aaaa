@@ -33,7 +33,7 @@ describe.skipIf(!TEST_URL)("services + database", () => {
 
   const mk = (over: Partial<Parameters<typeof svc.productService.create>[0]> = {}) =>
     svc.productService.create(
-      { sku: "SKU-01", name: "Baju", unit: "pcs", cost_price: 10000, selling_price: 15000, current_stock: 10, ...over },
+      { sku: "SKU-01", name: "Baju", unit: "pcs", category: "Seragam Satpam", cost_price: 10000, selling_price: 15000, current_stock: 10, ...over },
       "ADMIN",
     );
 

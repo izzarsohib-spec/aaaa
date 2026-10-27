@@ -96,7 +96,7 @@ export function Card({ className, children }: { className?: string; children: Re
 
 const badgeTone = {
   neutral: "bg-zinc-100 text-zinc-700",
-  good: "bg-accent-soft text-teal-900",
+  good: "bg-accent-soft text-blue-900",
   bad: "bg-danger-soft text-red-900",
   warn: "bg-warn-soft text-warn",
 } as const;
@@ -285,7 +285,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             role={t.tone === "err" ? "alert" : "status"}
             className={cx(
               "enter rounded-md border px-4 py-3 text-sm shadow-sm",
-              t.tone === "err" ? "border-red-200 bg-danger-soft text-red-900" : "border-teal-200 bg-accent-soft text-teal-900",
+              t.tone === "err" ? "border-red-200 bg-danger-soft text-red-900" : "border-blue-200 bg-accent-soft text-blue-900",
             )}
           >
             {t.text}
