@@ -127,7 +127,7 @@ export function SalesTable({ from, to, refreshKey, onChanged }: { from?: string;
           {data.items.map((s) => (
             <tr key={s.id} className={s.status === "CANCELLED" ? "text-muted" : undefined}>
               <Td>
-                <Link href={"/sales/" + s.id} className="font-mono text-xs text-accent underline-offset-2 hover:underline">
+                <Link href={"/sales/view?id=" + s.id} className="font-mono text-xs text-accent underline-offset-2 hover:underline">
                   {s.invoice_number}
                 </Link>
               </Td>

@@ -95,7 +95,7 @@ export default function PosPage() {
         },
       });
       toast("Transaksi tersimpan");
-      router.push("/sales/" + sale.id + "?baru=1");
+      router.push("/sales/view?id=" + sale.id + "&baru=1");
     } catch (e) {
       if (e instanceof ApiError && e.code === "STOCK_INSUFFICIENT") {
         setError(e.message);

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { Alert, Badge, Button, Card, Skeleton, TableWrap, Td, Th } from "@/components/ui";
 import { formatRupiah } from "@/lib/calculations";
@@ -20,12 +20,17 @@ interface Detail {
 }
 
 function Invoice() {
-  const { id } = useParams<{ id: string }>();
-  const isNew = useSearchParams().get("baru") === "1";
+  const params = useSearchParams();
+  const id = params.get("id");
+  const isNew = params.get("baru") === "1";
   const [sale, setSale] = useState<Detail | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!id) {
+      setError("Nomor transaksi tidak ditemukan");
+      return;
+    }
     api<Detail>("/api/sales/" + id)
       .then(setSale)
       .catch((e) => setError(e instanceof Error ? e.message : "Gagal memuat nota"));

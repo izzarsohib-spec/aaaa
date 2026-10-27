@@ -45,3 +45,5 @@ next-env.d.ts
 .pg.log
 .next-start.log
 *.tsbuildinfo
+.demo-build/
+.demo-out/

@@ -11,6 +11,20 @@ export class ApiError extends Error {
   }
 }
 
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
+async function demoCall<T>(path: string, method: string, body: unknown): Promise<T> {
+  const { demoApi } = await import("./demo-api");
+  try {
+    return (await demoApi(path, method, body)) as T;
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 401 && !path.startsWith("/api/auth/login")) {
+      window.location.href = BASE + "/login";
+    }
+    throw e;
+  }
+}
+
 function csrfToken(): string {
   const m = document.cookie.match(/(?:^|; )adzkia_csrf=([^;]+)/);
   return m ? decodeURIComponent(m[1]) : "";
@@ -22,6 +36,7 @@ export async function api<T = unknown>(
   init: { method?: string; body?: unknown; signal?: AbortSignal } = {},
 ): Promise<T> {
   const method = init.method ?? "GET";
+  if (process.env.NEXT_PUBLIC_DEMO) return demoCall<T>(path, method, init.body);
   const headers: Record<string, string> = {};
   if (init.body !== undefined) headers["content-type"] = "application/json";
   if (method !== "GET") headers["x-csrf-token"] = csrfToken();
@@ -45,7 +60,7 @@ export async function api<T = unknown>(
     /* non-JSON */
   }
   if (res.status === 401 && !path.startsWith("/api/auth/login")) {
-    window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.href = BASE + "/login?next=" + encodeURIComponent(window.location.pathname + window.location.search);
     throw new ApiError("Sesi berakhir", 401, "UNAUTHORIZED");
   }
   if (!res.ok || json.success === false) {
