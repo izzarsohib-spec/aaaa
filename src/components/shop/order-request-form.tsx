@@ -11,18 +11,24 @@ export function OrderRequestForm({
   heading,
   children,
   buildLines,
+  validate,
 }: {
   title: string;
   intro: string;
   heading: string;
   children: ReactNode;
   buildLines: (get: (k: string) => string, f: FormData) => string[];
+  validate?: (f: FormData) => string | null;
 }) {
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
+    const problem = validate?.(f) ?? null;
+    setError(problem);
+    if (problem) return;
     const get = (k: string) => String(f.get(k) ?? "").trim();
     const msg = [
       heading,
@@ -48,6 +54,7 @@ export function OrderRequestForm({
         </div>
         <Field label="Nomor WhatsApp">{(a) => <Input {...a} name="phone" type="tel" required />}</Field>
         {children}
+        {error && <p role="alert" className="text-sm text-danger">{error}</p>}
         <Button type="submit">Kirim permintaan via WhatsApp</Button>
         {sent && <p role="status" className="text-sm text-muted">WhatsApp terbuka di tab baru. Bila tidak terbuka, izinkan pop-up lalu kirim ulang.</p>}
       </form>

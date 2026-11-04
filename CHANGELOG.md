@@ -24,3 +24,6 @@
 - `/grosir` (Grosir) dan `/grosir/custom-logo` (Custom Logo) dengan tab berdampingan di atas formulir; menu "Grosir & Custom Logo" tetap menyala di kedua halaman.
 - Grosir: produk, jumlah & ukuran, tanggal dibutuhkan (opsional), catatan. Custom Logo: produk, jumlah, jenis (bordir/sablon), posisi logo (centang), teks, catatan. Keduanya terkirim lewat WhatsApp.
 - Komponen bersama `order-request-form.tsx` untuk kolom perusahaan, PIC, dan WhatsApp.
+
+## 2026-11-04 - Grosir per ukuran
+- Formulir Grosir: produk dan jumlah teks bebas diganti tiga kelompok (Baju S-XXL, Celana S-XXL, Sepatu 38-45) dengan kolom qty di samping tiap ukuran. Pesan WhatsApp merangkum ukuran yang terisi beserta total per kelompok; minimal satu ukuran wajib diisi.
