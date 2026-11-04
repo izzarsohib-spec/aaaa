@@ -34,3 +34,6 @@
 ## 2026-11-04 - Grosir: pilih jenis item
 - Formulir Grosir dimulai dengan memilih jenis item (Seragam / Sepatu / Aksesoris, boleh lebih dari satu). Seragam: ukuran baju dan celana masing-masing dengan qty. Sepatu: jenis sepatu + ukuran + qty. Aksesoris: jenis aksesoris + qty. Pesan WhatsApp dikelompokkan per jenis item.
 - Daftar jenis sepatu dan aksesoris di `grosir/page.tsx` (SHOE_TYPES, ACCESSORIES) masih contoh; sesuaikan dengan katalog.
+
+## 2026-11-04 - Grosir: jenis dari katalog
+- Seragam: ada pilihan "Jenis seragam" (nama produk kategori Seragam Satpam di katalog) sebelum ukuran baju dan celana; wajib dipilih. Jenis sepatu (kategori Sepatu) dan jenis aksesoris (kategori Topi + Atribut) juga diambil dari katalog; bila katalog gagal dimuat atau kosong, dipakai daftar bawaan.

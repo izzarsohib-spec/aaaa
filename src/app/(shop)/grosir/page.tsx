@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Button, Field, Input } from "@/components/ui";
 import { OrderRequestForm } from "@/components/shop/order-request-form";
 import { SizeCombobox } from "@/components/shop/size-combobox";
+import { api, type Paged } from "@/lib/client";
 
 type Row = { id: number; kind: string; size: string; qty: string };
 type Item = "seragam" | "sepatu" | "aksesoris";
@@ -19,9 +20,22 @@ const SIZES = {
   celana: ["28", "30", "32", "34", "36", "38", "40", "42", "44", "46", "48"],
   sepatu: ["37", "38", "39", "40", "41", "42", "43", "44", "45"],
 };
-/* Daftar jenis ini contoh; sesuaikan dengan katalog toko. */
-const SHOE_TYPES = ["Sepatu PDL", "Sepatu Pantofel", "Sepatu Boots", "Sepatu Safety"];
-const ACCESSORIES = ["Topi Baret", "Topi Rimba", "Ikat Pinggang", "Papan Nama", "Peluit & Tali", "Dasi", "Emblem / Badge"];
+/* Jenis diambil dari katalog toko (nama produk per kategori); daftar ini dipakai bila katalog gagal dimuat atau kosong. */
+const FALLBACK = {
+  seragam: ["Seragam Satpam"],
+  sepatu: ["Sepatu PDL", "Sepatu Pantofel", "Sepatu Boots", "Sepatu Safety"],
+  aksesoris: ["Topi Baret", "Topi Rimba", "Ikat Pinggang", "Papan Nama", "Peluit & Tali", "Dasi", "Emblem / Badge"],
+};
+const CATALOG_CATEGORIES: Record<keyof typeof FALLBACK, string[]> = {
+  seragam: ["Seragam Satpam"],
+  sepatu: ["Sepatu"],
+  aksesoris: ["Topi", "Atribut"],
+};
+
+async function namesIn(categories: string[]) {
+  const pages = await Promise.all(categories.map((c) => api<Paged<{ name: string }>>("/api/shop/products?limit=100&sortBy=name&category=" + encodeURIComponent(c))));
+  return [...new Set(pages.flatMap((pg) => pg.items.map((i) => i.name)))];
+}
 
 let nextId = 1;
 const blank = (): Row => ({ id: nextId++, kind: "", size: "", qty: "" });
@@ -65,6 +79,16 @@ function Rows({
 
 export default function WholesalePage() {
   const [picked, setPicked] = useState<Item[]>([]);
+  const [kinds, setKinds] = useState(FALLBACK);
+  const [uniform, setUniform] = useState("");
+
+  useEffect(() => {
+    (Object.keys(CATALOG_CATEGORIES) as (keyof typeof FALLBACK)[]).forEach((k) => {
+      namesIn(CATALOG_CATEGORIES[k])
+        .then((names) => names.length && setKinds((s) => ({ ...s, [k]: names })))
+        .catch(() => {});
+    });
+  }, []);
   const [g, setG] = useState<Groups>(() => ({ baju: [blank()], celana: [blank()], sepatu: [blank()], aksesoris: [blank()] }));
   const set = (k: keyof Groups) => (rows: Row[]) => setG((s) => ({ ...s, [k]: rows }));
 
@@ -78,6 +102,7 @@ export default function WholesalePage() {
 
   function validate() {
     if (picked.length === 0) return "Pilih jenis item dulu: seragam, sepatu, atau aksesoris.";
+    if (picked.includes("seragam") && !uniform) return "Pilih jenis seragam dulu.";
     const empty = ITEMS.filter((i) => picked.includes(i.key) && filledFor(i.key) === 0).map((i) => i.label.toLowerCase());
     return empty.length ? "Lengkapi pilihan dan qty untuk: " + empty.join(", ") + "." : null;
   }
@@ -86,7 +111,7 @@ export default function WholesalePage() {
     const out: string[] = [];
     const sizes = (rows: Row[]) => rows.map((r) => r.size + " " + qtyOf(r)).join(", ") + " (total " + total(rows) + ")";
     if (picked.includes("seragam")) {
-      out.push("SERAGAM");
+      out.push("SERAGAM: " + uniform);
       out.push("Baju: " + (done.baju.length ? sizes(done.baju) : "-"));
       out.push("Celana: " + (done.celana.length ? sizes(done.celana) : "-"));
     }
@@ -139,6 +164,10 @@ export default function WholesalePage() {
         <section className="grid gap-4 rounded-md border border-border p-4" aria-label="Seragam">
           <h2 className="text-sm font-semibold">Seragam</h2>
           <div className="grid gap-2">
+            <p className="text-sm font-medium">Jenis seragam</p>
+            <SizeCombobox label="Jenis seragam" placeholder="Cari / pilih jenis seragam" value={uniform} options={kinds.seragam} onChange={setUniform} />
+          </div>
+          <div className="grid gap-2">
             <p className="text-sm font-medium">Ukuran baju</p>
             <Rows rows={g.baju} onChange={set("baju")} addLabel="Tambah ukuran baju">
               {(r, patch) => <SizeCombobox label="Ukuran baju" value={r.size} options={free(SIZES.baju, g.baju, (x) => x.size, r.size)} onChange={(v) => patch({ size: v })} />}
@@ -159,7 +188,7 @@ export default function WholesalePage() {
           <Rows rows={g.sepatu} onChange={set("sepatu")} addLabel="Tambah sepatu">
             {(r, patch) => (
               <>
-                <SizeCombobox label="Jenis sepatu" placeholder="Pilih jenis sepatu" value={r.kind} options={SHOE_TYPES} onChange={(v) => patch({ kind: v })} />
+                <SizeCombobox label="Jenis sepatu" placeholder="Pilih jenis sepatu" value={r.kind} options={kinds.sepatu} onChange={(v) => patch({ kind: v })} />
                 <SizeCombobox label="Ukuran sepatu" value={r.size} options={SIZES.sepatu} onChange={(v) => patch({ size: v })} />
               </>
             )}
@@ -171,7 +200,7 @@ export default function WholesalePage() {
         <section className="grid gap-2 rounded-md border border-border p-4" aria-label="Aksesoris">
           <h2 className="text-sm font-semibold">Aksesoris</h2>
           <Rows rows={g.aksesoris} onChange={set("aksesoris")} addLabel="Tambah aksesoris">
-            {(r, patch) => <SizeCombobox label="Jenis aksesoris" placeholder="Pilih jenis aksesoris" value={r.kind} options={free(ACCESSORIES, g.aksesoris, (x) => x.kind, r.kind)} onChange={(v) => patch({ kind: v })} />}
+            {(r, patch) => <SizeCombobox label="Jenis aksesoris" placeholder="Pilih jenis aksesoris" value={r.kind} options={free(kinds.aksesoris, g.aksesoris, (x) => x.kind, r.kind)} onChange={(v) => patch({ kind: v })} />}
           </Rows>
         </section>
       )}
