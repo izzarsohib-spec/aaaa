@@ -11,7 +11,7 @@ import { STORE, whatsappLink } from "@/lib/shop";
 /* Empat produk unggulan di banner; foto diambil dari produk katalog bila sudah diunggah. */
 const HERO = [
   { label: "Seragam PDH", category: "Seragam Satpam", match: "pdh" },
-  { label: "Topi Pet Satpam", category: "Topi", match: "pet" },
+  { label: "Topi Pet Satpam", category: "Topi", match: "pet", anyPhoto: true },
   { label: "Sepatu PDH Doof", category: "Sepatu", match: "doof" },
   { label: "Rompi", category: "Atribut", match: "rompi" },
 ];
@@ -63,13 +63,9 @@ export default function HomePage() {
         </div>
         <div className="hidden grid-cols-2 gap-3 md:grid">
           {HERO.map((h) => {
-            const src = hero?.find((p) => p.category === h.category && p.name.toLowerCase().includes(h.match))?.image_url ?? null;
-            return (
-              <div key={h.label} className="grid gap-1.5">
-                <ProductArt category={h.category} name={h.label} src={src} />
-                <p className="text-center text-sm font-medium">{h.label}</p>
-              </div>
-            );
+            const inCat = hero?.filter((p) => p.category === h.category && p.image_url) ?? [];
+            const src = (inCat.find((p) => p.name.toLowerCase().includes(h.match)) ?? (h.anyPhoto ? inCat[0] : undefined))?.image_url ?? null;
+            return <ProductArt key={h.label} category={h.category} name={h.label} src={src} />;
           })}
         </div>
       </section>

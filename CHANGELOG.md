@@ -51,3 +51,5 @@
 - Kategori Celana dan Paket Hemat dihapus dari beranda, menu, daftar kategori, dan data demo (produk contoh celana dan paket ikut dihapus). Tabel Celana di Panduan Ukuran tetap karena itu panduan ukuran.
 
 - Banner beranda: empat gambar diganti Seragam PDH, Topi Pet Satpam, Sepatu PDH Doof, dan Rompi dengan keterangan; memakai foto produk katalog bila sudah diunggah. Data demo disesuaikan (nama produk, tambah Rompi Satpam).
+
+- Banner beranda: keterangan teks di bawah gambar dihapus; kotak Topi memakai foto topi mana pun yang sudah diunggah bila nama tidak memuat "Pet".
