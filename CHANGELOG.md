@@ -27,3 +27,6 @@
 
 ## 2026-11-04 - Grosir per ukuran
 - Formulir Grosir: produk dan jumlah teks bebas diganti tiga kelompok (Baju S-XXL, Celana S-XXL, Sepatu 38-45) dengan kolom qty di samping tiap ukuran. Pesan WhatsApp merangkum ukuran yang terisi beserta total per kelompok; minimal satu ukuran wajib diisi.
+
+## 2026-11-04 - Grosir: pilih ukuran lewat dropdown cari
+- Ukuran baju (S-XXL, L4-L7), celana (28-48 kelipatan 2), dan sepatu (37-45) dipilih lewat kolom cari + dropdown (`size-combobox.tsx`), qty di sisi kanan. Tombol "+ Tambah ukuran" untuk beberapa ukuran; ukuran yang sudah dipilih tidak muncul lagi di baris lain; tombol × menghapus baris.
