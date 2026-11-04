@@ -23,8 +23,8 @@ const KEY = "adzkia-demo-v2";
 const uid = () => crypto.randomUUID();
 
 function seed(): Store {
-  const p = (sku: string, name: string, unit: string, cost: number, price: number, stock: number, category: string, description: string): DProduct => ({
-    id: uid(), sku, name, unit, category, description, image_url: null, cost_price: cost, selling_price: price, current_stock: stock, deleted: false,
+  const p = (sku: string, name: string, unit: string, cost: number, price: number, stock: number, category: string, description: string, image?: string): DProduct => ({
+    id: uid(), sku, name, unit, category, description, image_url: image ?? null, cost_price: cost, selling_price: price, current_stock: stock, deleted: false,
   });
   return {
     users: [
@@ -35,7 +35,7 @@ function seed(): Store {
       p("SRG-001", "Seragam PDH Satpam", "pcs", 85000, 125000, 24, "Seragam Satpam", "Seragam PDH satpam lengan pendek bahan nyaman dan tahan lama, cocok untuk dinas harian."),
       p("TPI-001", "Topi Pet Satpam", "pcs", 20000, 35000, 40, "Topi", "Topi baret satpam dengan lambang, ukuran dapat disesuaikan."),
       p("SPT-001", "Sepatu PDH Doof", "pasang", 140000, 210000, 3, "Sepatu", "Sepatu PDL kulit sintetis, sol anti slip, nyaman dipakai berjaga lama."),
-      p("ATR-004", "Rompi Satpam", "pcs", 45000, 75000, 20, "Atribut", "Rompi satpam dengan reflektor, nyaman dipakai berjaga."),
+      p("ATR-004", "Rompi Satpam", "pcs", 45000, 75000, 20, "Atribut", "Rompi security bahan mesh dengan reflektor, ringan dan nyaman dipakai berjaga.", (process.env.NEXT_PUBLIC_BASE_PATH ?? "") + "/produk/rompi-security.jpg"),
       p("ATR-001", "Ikat Pinggang Satpam", "pcs", 18000, 30000, 30, "Atribut", "Ikat pinggang satpam dengan kepala gesper logam."),
       p("ATR-002", "Papan Nama Satpam", "pcs", 6000, 15000, 0, "Atribut", "Papan nama bordir sesuai nama petugas."),
       p("ATR-003", "Peluit dan Tali", "set", 9000, 18000, 55, "Atribut", "Peluit logam dan tali kur."),

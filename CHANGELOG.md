@@ -53,3 +53,5 @@
 - Banner beranda: empat gambar diganti Seragam PDH, Topi Pet Satpam, Sepatu PDH Doof, dan Rompi dengan keterangan; memakai foto produk katalog bila sudah diunggah. Data demo disesuaikan (nama produk, tambah Rompi Satpam).
 
 - Banner beranda: keterangan teks di bawah gambar dihapus; kotak Topi memakai foto topi mana pun yang sudah diunggah bila nama tidak memuat "Pet".
+
+- Foto rompi security dipasang (public/produk/rompi-security.jpg): jadi gambar kotak Rompi di banner beranda dan foto produk Rompi Satpam di data demo.

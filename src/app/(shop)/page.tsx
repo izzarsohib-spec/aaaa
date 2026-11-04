@@ -13,7 +13,7 @@ const HERO = [
   { label: "Seragam PDH", category: "Seragam Satpam", match: "pdh" },
   { label: "Topi Pet Satpam", category: "Topi", match: "pet", anyPhoto: true },
   { label: "Sepatu PDH Doof", category: "Sepatu", match: "doof" },
-  { label: "Rompi", category: "Atribut", match: "rompi" },
+  { label: "Rompi", category: "Atribut", match: "rompi", fallback: "/produk/rompi-security.jpg" },
 ];
 
 const TILES = ["Seragam Satpam", "Sepatu", "Topi", "Atribut"];
@@ -64,7 +64,7 @@ export default function HomePage() {
         <div className="hidden grid-cols-2 gap-3 md:grid">
           {HERO.map((h) => {
             const inCat = hero?.filter((p) => p.category === h.category && p.image_url) ?? [];
-            const src = (inCat.find((p) => p.name.toLowerCase().includes(h.match)) ?? (h.anyPhoto ? inCat[0] : undefined))?.image_url ?? null;
+            const src = (inCat.find((p) => p.name.toLowerCase().includes(h.match)) ?? (h.anyPhoto ? inCat[0] : undefined))?.image_url ?? (h.fallback ? (process.env.NEXT_PUBLIC_BASE_PATH ?? "") + h.fallback : null);
             return <ProductArt key={h.label} category={h.category} name={h.label} src={src} />;
           })}
         </div>
