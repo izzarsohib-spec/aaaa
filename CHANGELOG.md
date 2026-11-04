@@ -30,3 +30,7 @@
 
 ## 2026-11-04 - Grosir: pilih ukuran lewat dropdown cari
 - Ukuran baju (S-XXL, L4-L7), celana (28-48 kelipatan 2), dan sepatu (37-45) dipilih lewat kolom cari + dropdown (`size-combobox.tsx`), qty di sisi kanan. Tombol "+ Tambah ukuran" untuk beberapa ukuran; ukuran yang sudah dipilih tidak muncul lagi di baris lain; tombol × menghapus baris.
+
+## 2026-11-04 - Grosir: pilih jenis item
+- Formulir Grosir dimulai dengan memilih jenis item (Seragam / Sepatu / Aksesoris, boleh lebih dari satu). Seragam: ukuran baju dan celana masing-masing dengan qty. Sepatu: jenis sepatu + ukuran + qty. Aksesoris: jenis aksesoris + qty. Pesan WhatsApp dikelompokkan per jenis item.
+- Daftar jenis sepatu dan aksesoris di `grosir/page.tsx` (SHOE_TYPES, ACCESSORIES) masih contoh; sesuaikan dengan katalog.

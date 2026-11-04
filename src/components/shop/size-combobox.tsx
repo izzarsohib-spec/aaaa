@@ -8,11 +8,13 @@ export function SizeCombobox({
   options,
   onChange,
   label,
+  placeholder = "Cari / pilih ukuran",
 }: {
   value: string;
   options: string[];
   onChange: (v: string) => void;
   label: string;
+  placeholder?: string;
 }) {
   const listId = useId();
   const [open, setOpen] = useState(false);
@@ -36,7 +38,7 @@ export function SizeCombobox({
         aria-controls={listId}
         aria-autocomplete="list"
         autoComplete="off"
-        placeholder="Cari / pilih ukuran"
+        placeholder={placeholder}
         value={open ? query : value}
         onFocus={() => {
           setQuery("");
@@ -69,7 +71,7 @@ export function SizeCombobox({
       </svg>
       {open && (
         <ul id={listId} role="listbox" className="absolute z-20 mt-1 max-h-52 w-full overflow-auto rounded-md border border-border bg-surface py-1 shadow-lg">
-          {shown.length === 0 && <li className="px-3 py-2 text-sm text-muted">Ukuran tidak ditemukan</li>}
+          {shown.length === 0 && <li className="px-3 py-2 text-sm text-muted">Tidak ditemukan</li>}
           {shown.map((o, i) => (
             <li
               key={o}
