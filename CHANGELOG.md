@@ -55,3 +55,5 @@
 - Banner beranda: keterangan teks di bawah gambar dihapus; kotak Topi memakai foto topi mana pun yang sudah diunggah bila nama tidak memuat "Pet".
 
 - Foto rompi security dipasang (public/produk/rompi-security.jpg): jadi gambar kotak Rompi di banner beranda dan foto produk Rompi Satpam di data demo.
+
+- Banner beranda: kotak Seragam diganti dua kotak, Seragam Safari dan Seragam PDH SUS, memakai foto produk katalog yang namanya memuat "safari" dan "sus".
