@@ -12,12 +12,9 @@ import { STORE, whatsappLink } from "@/lib/shop";
 const HERO = [
   { label: "Seragam Safari", category: "Seragam Satpam", match: "safari" },
   { label: "Seragam PDH SUS", category: "Seragam Satpam", match: "sus" },
-  { label: "Topi Pet Satpam", category: "Topi", match: "pet", anyPhoto: true },
   { label: "Sepatu PDH Doof", category: "Sepatu", match: "doof" },
   { label: "Rompi", category: "Atribut", match: "rompi", fallback: "/produk/rompi-security.jpg" },
 ];
-
-const TILES = ["Seragam Satpam", "Sepatu", "Topi", "Atribut"];
 
 export default function HomePage() {
   const [items, setItems] = useState<ShopProduct[] | null>(null);
@@ -65,23 +62,10 @@ export default function HomePage() {
         <div className="hidden grid-cols-2 gap-3 md:grid">
           {HERO.map((h) => {
             const inCat = hero?.filter((p) => p.category === h.category && p.image_url) ?? [];
-            const src = (inCat.find((p) => p.name.toLowerCase().includes(h.match)) ?? (h.anyPhoto ? inCat[0] : undefined))?.image_url ?? (h.fallback ? (process.env.NEXT_PUBLIC_BASE_PATH ?? "") + h.fallback : null);
+            const src = inCat.find((p) => p.name.toLowerCase().includes(h.match))?.image_url ?? (h.fallback ? (process.env.NEXT_PUBLIC_BASE_PATH ?? "") + h.fallback : null);
             return <ProductArt key={h.label} category={h.category} name={h.label} src={src} />;
           })}
         </div>
-      </section>
-
-      <section aria-label="Kategori" className="grid grid-cols-3 gap-3 md:grid-cols-6">
-        {TILES.map((c) => (
-          <Link
-            key={c}
-            href={"/katalog?category=" + encodeURIComponent(c)}
-            className="grid gap-2 rounded-lg border border-border bg-surface p-3 text-center text-sm font-medium hover:border-accent"
-          >
-            <ProductArt category={c} name={c} />
-            {c}
-          </Link>
-        ))}
       </section>
 
       <section aria-label="Produk pilihan" className="grid gap-4">
