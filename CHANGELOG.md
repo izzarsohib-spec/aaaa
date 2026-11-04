@@ -37,3 +37,8 @@
 
 ## 2026-11-04 - Grosir: jenis dari katalog
 - Seragam: ada pilihan "Jenis seragam" (nama produk kategori Seragam Satpam di katalog) sebelum ukuran baju dan celana; wajib dipilih. Jenis sepatu (kategori Sepatu) dan jenis aksesoris (kategori Topi + Atribut) juga diambil dari katalog; bila katalog gagal dimuat atau kosong, dipakai daftar bawaan.
+
+## 2026-11-04 - Grosir: tampilan pemesanan massal untuk customer
+- Halaman Grosir dirancang ulang jadi 4 langkah (`bulk-order-form.tsx`): 1) pemesan perusahaan/instansi atau perorangan + kontak, 2) pilih barang dari katalog per tab Seragam/Sepatu/Aksesoris dengan pencarian (boleh banyak jenis), 3) kartu per barang berisi kotak qty per ukuran (baju S-L7, celana 28-48, sepatu 37-45; aksesoris cukup jumlah), 4) tanggal dibutuhkan + catatan.
+- Panel "Ringkasan pesanan" di kanan (di bawah pada HP) menampilkan subtotal tiap barang dan total per kategori; pesan WhatsApp dikelompokkan per kategori dengan nomor urut.
+- Komponen dropdown ukuran `size-combobox.tsx` dihapus (tidak dipakai lagi).
