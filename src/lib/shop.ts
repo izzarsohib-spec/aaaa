@@ -17,7 +17,7 @@ export const STORE = {
  */
 export const WHOLESALE_WHATSAPP = "6285703191053";
 
-export const CATEGORIES = ["Seragam Satpam", "Celana", "Sepatu", "Topi", "Atribut", "Paket Hemat", "Lainnya"] as const;
+export const CATEGORIES = ["Seragam Satpam", "Sepatu", "Topi", "Atribut", "Lainnya"] as const;
 
 /** Ongkir tetap (estimasi). Dihitung ulang di server, tidak dipercaya dari klien. */
 export const SHIPPING = [

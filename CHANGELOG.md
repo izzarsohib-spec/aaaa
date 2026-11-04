@@ -47,3 +47,5 @@
 - Tombol kirim di Grosir kini membuat PDF di browser (`src/lib/bulk-pdf.ts`, jsPDF + autotable; kop, data pemesan, tabel per kategori, ringkasan, catatan, nomor halaman, baris tidak terpotong antar halaman), mengunduhnya, lalu membuka WhatsApp dengan ringkasan teks singkat. Panel hasil menyediakan "Buka WhatsApp lagi", "Unduh PDF lagi", dan "Bagikan PDF" (HP). WhatsApp tidak bisa menerima lampiran otomatis dari link, jadi customer melampirkan PDF sendiri.
 - Nomor tujuan permintaan Grosir dan Custom Logo dipisah: `WHOLESALE_WHATSAPP` di `src/lib/shop.ts`, sementara nomor uji 6285703191053; ganti dengan nomor Mas Wahyu nanti. `STORE.whatsapp` (kontak umum toko) tidak berubah.
 - Dependensi baru: jspdf, jspdf-autotable.
+
+- Kategori Celana dan Paket Hemat dihapus dari beranda, menu, daftar kategori, dan data demo (produk contoh celana dan paket ikut dihapus). Tabel Celana di Panduan Ukuran tetap karena itu panduan ukuran.

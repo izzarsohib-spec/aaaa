@@ -33,13 +33,11 @@ function seed(): Store {
     ],
     products: [
       p("SRG-001", "Baju Satpam Lengan Pendek", "pcs", 85000, 125000, 24, "Seragam Satpam", "Baju satpam lengan pendek bahan nyaman dan tahan lama, cocok untuk dinas harian."),
-      p("SRG-002", "Celana Satpam Hitam", "pcs", 75000, 110000, 18, "Celana", "Celana satpam hitam potongan standar, bahan adem dan tidak mudah kusut."),
       p("TPI-001", "Topi Satpam Baret", "pcs", 20000, 35000, 40, "Topi", "Topi baret satpam dengan lambang, ukuran dapat disesuaikan."),
       p("SPT-001", "Sepatu PDL Satpam", "pasang", 140000, 210000, 3, "Sepatu", "Sepatu PDL kulit sintetis, sol anti slip, nyaman dipakai berjaga lama."),
       p("ATR-001", "Ikat Pinggang Satpam", "pcs", 18000, 30000, 30, "Atribut", "Ikat pinggang satpam dengan kepala gesper logam."),
       p("ATR-002", "Papan Nama Satpam", "pcs", 6000, 15000, 0, "Atribut", "Papan nama bordir sesuai nama petugas."),
       p("ATR-003", "Peluit dan Tali", "set", 9000, 18000, 55, "Atribut", "Peluit logam dan tali kur."),
-      p("PKT-001", "Paket Seragam Satpam Lengkap", "paket", 235000, 330000, 12, "Paket Hemat", "Paket hemat: baju, celana, topi, ikat pinggang, dan peluit."),
     ],
     sales: [],
     adjustments: [],

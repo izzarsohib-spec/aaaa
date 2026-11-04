@@ -8,7 +8,7 @@ import { ProductCard, type ShopProduct } from "@/components/shop/product-card";
 import { api, type Paged } from "@/lib/client";
 import { STORE, whatsappLink } from "@/lib/shop";
 
-const TILES = ["Seragam Satpam", "Celana", "Sepatu", "Topi", "Atribut", "Paket Hemat"];
+const TILES = ["Seragam Satpam", "Sepatu", "Topi", "Atribut"];
 
 export default function HomePage() {
   const [items, setItems] = useState<ShopProduct[] | null>(null);

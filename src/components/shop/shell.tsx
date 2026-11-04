@@ -12,7 +12,6 @@ const NAV = [
   { href: "/katalog?category=Seragam%20Satpam", label: "Seragam" },
   { href: "/katalog?category=Sepatu", label: "Sepatu" },
   { href: "/katalog?category=Atribut", label: "Atribut" },
-  { href: "/katalog?category=Paket%20Hemat", label: "Paket Hemat" },
   { href: "/grosir", label: "Grosir & Custom Logo" },
   { href: "/panduan-ukuran", label: "Panduan Ukuran" },
   { href: "/pesanan", label: "Lacak Pesanan" },
