@@ -1,0 +1,211 @@
+
+> adzkia-collection@0.1.0 dev
+> next dev
+
+▲ Next.js 16.4.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.100.41:3000
+- Environments: .env.local
+✓ Ready in 1822ms
+✓ Running next.config.ts took 272ms
+
+○ Compiling /login ...
+ GET /login 200 in 516ms (next.js: 288ms, application-code: 228ms)
+ GET /login 200 in 168ms (next.js: 6ms, application-code: 162ms)
+{"level":"info","time":"2026-11-04T04:49:58.245Z","msg":"request","requestId":"eaa4a099-fe16-4a7b-82aa-70e5d51bb559","method":"POST","path":"/api/auth/login","status":200,"ms":440}
+ POST /api/auth/login 200 in 1000ms (next.js: 175ms, application-code: 825ms)
+ GET /dashboard 200 in 615ms (next.js: 478ms, proxy.ts: 80ms, application-code: 57ms)
+ GET /dashboard 200 in 78ms (next.js: 22ms, proxy.ts: 14ms, application-code: 42ms)
+ GET /products 200 in 906ms (next.js: 713ms, proxy.ts: 26ms, application-code: 168ms)
+ GET /api/sales?page=1&limit=10&from=2026-11-04&to=2026-11-04 200 in 262ms (next.js: 51ms, application-code: 211ms)
+ GET /api/sales/daily-summary 200 in 356ms (next.js: 66ms, application-code: 290ms)
+{"level":"info","time":"2026-11-04T04:49:59.977Z","msg":"request","requestId":"8be8df90-f40f-4f0c-9188-c2c267b4d18e","method":"GET","path":"/api/sales/daily-summary","status":200,"ms":285}
+{"level":"info","time":"2026-11-04T04:50:00.115Z","msg":"request","requestId":"78205387-175b-40ef-a906-845cc09179da","method":"GET","path":"/api/sales","status":200,"ms":359}
+{"level":"info","time":"2026-11-04T04:50:00.668Z","msg":"request","requestId":"0d4f000b-ec73-417a-b428-064d39dfd52f","method":"GET","path":"/api/products","status":200,"ms":31}
+ GET /api/products?page=1&limit=15&search= 200 in 121ms (next.js: 71ms, application-code: 50ms)
+{"level":"info","time":"2026-11-04T04:50:00.713Z","msg":"request","requestId":"9da10c81-9084-4198-a3db-c1d1a9a79a39","method":"GET","path":"/api/products","status":200,"ms":5}
+ GET /api/products?page=1&limit=15&search= 200 in 25ms (next.js: 3ms, application-code: 22ms)
+ GET /login 200 in 92ms (next.js: 4ms, application-code: 88ms)
+{"level":"info","time":"2026-11-04T04:50:38.374Z","msg":"request","requestId":"bdf1ecbe-639f-4a03-85a0-af17b83d8104","method":"POST","path":"/api/auth/login","status":200,"ms":399}
+ POST /api/auth/login 200 in 410ms (next.js: 2ms, application-code: 408ms)
+ GET /dashboard 200 in 70ms (next.js: 25ms, proxy.ts: 7ms, application-code: 37ms)
+ GET /dashboard 200 in 62ms (next.js: 9ms, proxy.ts: 13ms, application-code: 40ms)
+ GET /api/sales/daily-summary 200 in 88ms (next.js: 3ms, application-code: 85ms)
+ GET /api/sales?page=1&limit=10&from=2026-11-04&to=2026-11-04 200 in 123ms (next.js: 4ms, application-code: 119ms)
+ GET /products 200 in 263ms (next.js: 66ms, proxy.ts: 15ms, application-code: 182ms)
+{"level":"info","time":"2026-11-04T04:50:38.880Z","msg":"request","requestId":"e4c15409-fa0b-43cb-9a2e-1f59e42d358d","method":"GET","path":"/api/sales","status":200,"ms":128}
+{"level":"info","time":"2026-11-04T04:50:38.977Z","msg":"request","requestId":"3cf9636f-12c0-4645-9e37-d2c1ffe8b229","method":"GET","path":"/api/sales/daily-summary","status":200,"ms":186}
+{"level":"info","time":"2026-11-04T04:50:39.144Z","msg":"request","requestId":"be1f2eab-0cd0-4948-9c4e-de0041e64978","method":"GET","path":"/api/products","status":200,"ms":21}
+ GET /api/products?page=1&limit=15&search= 200 in 40ms (next.js: 2ms, application-code: 38ms)
+{"level":"info","time":"2026-11-04T04:50:39.183Z","msg":"request","requestId":"eba34a6e-0511-435e-8d48-4dbc88c12704","method":"GET","path":"/api/products","status":200,"ms":5}
+ GET /api/products?page=1&limit=15&search= 200 in 24ms (next.js: 3ms, application-code: 21ms)
+ GET /login 200 in 102ms (next.js: 4ms, application-code: 97ms)
+ GET /login 200 in 174ms (next.js: 4ms, application-code: 170ms)
+ GET /login 200 in 141ms (next.js: 4ms, application-code: 137ms)
+{"level":"info","time":"2026-11-04T04:51:40.722Z","msg":"request","requestId":"ce1ba615-8784-43a6-976d-e8844af10acf","method":"POST","path":"/api/auth/login","status":200,"ms":448}
+ POST /api/auth/login 200 in 465ms (next.js: 4ms, application-code: 461ms)
+ GET /dashboard 200 in 55ms (next.js: 10ms, proxy.ts: 8ms, application-code: 37ms)
+ GET /dashboard 200 in 53ms (next.js: 10ms, proxy.ts: 11ms, application-code: 32ms)
+ GET /api/sales/daily-summary 200 in 70ms (next.js: 5ms, application-code: 65ms)
+ GET /api/sales?page=1&limit=10&from=2026-11-04&to=2026-11-04 200 in 135ms (next.js: 4ms, application-code: 131ms)
+{"level":"info","time":"2026-11-04T04:51:41.242Z","msg":"request","requestId":"d2ea660e-7a2f-4015-93c4-d406cf03091d","method":"GET","path":"/api/sales","status":200,"ms":170}
+ GET /products 200 in 321ms (next.js: 29ms, proxy.ts: 19ms, application-code: 273ms)
+{"level":"info","time":"2026-11-04T04:51:41.347Z","msg":"request","requestId":"c97181b0-705f-4d28-8b37-b1c78437d4b0","method":"GET","path":"/api/sales/daily-summary","status":200,"ms":209}
+{"level":"info","time":"2026-11-04T04:51:41.542Z","msg":"request","requestId":"682066cd-7139-4cde-ab15-26b90ce4793a","method":"GET","path":"/api/products","status":200,"ms":24}
+ GET /api/products?page=1&limit=15&search= 200 in 44ms (next.js: 4ms, application-code: 40ms)
+{"level":"info","time":"2026-11-04T04:51:41.582Z","msg":"request","requestId":"6893a9aa-4cea-4312-8f7e-b6ab91c80518","method":"GET","path":"/api/products","status":200,"ms":6}
+ GET /api/products?page=1&limit=15&search= 200 in 31ms (next.js: 4ms, application-code: 28ms)
+{"level":"info","time":"2026-11-04T04:51:44.188Z","msg":"request","requestId":"0892af43-69a7-4a26-9622-717918037f55","method":"POST","path":"/api/products","status":201,"ms":39}
+ POST /api/products 201 in 55ms (next.js: 4ms, application-code: 51ms)
+{"level":"info","time":"2026-11-04T04:51:44.240Z","msg":"request","requestId":"eea7a562-f0d9-46e3-a242-cdb749cc9289","method":"GET","path":"/api/products","status":200,"ms":13}
+ GET /api/products?page=1&limit=15&search= 200 in 43ms (next.js: 5ms, application-code: 38ms)
+ GET /produk 200 in 92ms (next.js: 19ms, application-code: 74ms)
+ GET /login 200 in 103ms (next.js: 4ms, application-code: 99ms)
+{"level":"info","time":"2026-11-04T04:52:25.536Z","msg":"request","requestId":"391d953e-db89-4f25-84f7-02f3556a01a9","method":"POST","path":"/api/auth/login","status":200,"ms":452}
+ POST /api/auth/login 200 in 466ms (next.js: 3ms, application-code: 463ms)
+ GET /dashboard 200 in 56ms (next.js: 19ms, proxy.ts: 7ms, application-code: 30ms)
+ GET /dashboard 200 in 51ms (next.js: 9ms, proxy.ts: 8ms, application-code: 34ms)
+{"level":"info","time":"2026-11-04T04:52:25.924Z","msg":"request","requestId":"0f42df83-97c7-4869-936a-a35518a3a71b","method":"GET","path":"/api/sales","status":200,"ms":116}
+ GET /api/sales?page=1&limit=10&from=2026-11-04&to=2026-11-04 200 in 141ms (next.js: 9ms, application-code: 132ms)
+ GET /api/sales/daily-summary 200 in 171ms (next.js: 3ms, application-code: 167ms)
+ GET /products 200 in 242ms (next.js: 71ms, proxy.ts: 16ms, application-code: 155ms)
+{"level":"info","time":"2026-11-04T04:52:26.035Z","msg":"request","requestId":"1686ee36-a89a-4ba2-9d66-492abc9fcd4c","method":"GET","path":"/api/sales/daily-summary","status":200,"ms":213}
+{"level":"info","time":"2026-11-04T04:52:26.223Z","msg":"request","requestId":"a2b3788c-c234-4730-b6e5-3fa407f4ea62","method":"GET","path":"/api/products","status":200,"ms":24}
+ GET /api/products?page=1&limit=15&search= 200 in 43ms (next.js: 3ms, application-code: 40ms)
+{"level":"info","time":"2026-11-04T04:52:26.258Z","msg":"request","requestId":"777da9c1-e993-43d7-a37f-923406fd49b1","method":"GET","path":"/api/products","status":200,"ms":5}
+ GET /api/products?page=1&limit=15&search= 200 in 27ms (next.js: 3ms, application-code: 23ms)
+{"level":"info","time":"2026-11-04T04:52:28.910Z","msg":"request","requestId":"3a7a91d4-3f4d-4873-97cf-c9f93e693388","method":"POST","path":"/api/products","status":201,"ms":8}
+ POST /api/products 201 in 22ms (next.js: 3ms, application-code: 19ms)
+{"level":"info","time":"2026-11-04T04:52:28.936Z","msg":"request","requestId":"c3f431d4-c7ae-4c2e-a5b0-966d879ee53d","method":"GET","path":"/api/products","status":200,"ms":4}
+ GET /api/products?page=1&limit=15&search= 200 in 18ms (next.js: 2ms, application-code: 16ms)
+ GET /katalog 200 in 87ms (next.js: 20ms, application-code: 67ms)
+{"level":"info","time":"2026-11-04T04:52:30.333Z","msg":"request","requestId":"5ca20f89-1d74-428a-9823-1a31cab8de4d","method":"GET","path":"/api/shop/products","status":200,"ms":4}
+ GET /api/shop/products?page=1&limit=12&sortBy=newest 200 in 105ms (next.js: 82ms, application-code: 23ms)
+{"level":"info","time":"2026-11-04T04:52:30.378Z","msg":"request","requestId":"e73827c0-817e-4b78-8391-2735453a114d","method":"GET","path":"/api/shop/products","status":200,"ms":4}
+ GET /api/shop/products?page=1&limit=12&sortBy=newest 200 in 21ms (next.js: 4ms, application-code: 18ms)
+ GET /grosir/custom-logo 200 in 241ms (next.js: 42ms, application-code: 199ms)
+ GET /grosir 200 in 169ms (next.js: 25ms, application-code: 144ms)
+[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>
+      <RedirectBoundary>
+        <RedirectErrorBoundary router={{...}}>
+          <InnerLayoutRouter url="/grosir" tree={[...]} params={{}} renderTree={{...}} segmentPath={[...]} ...>
+            <SegmentViewNode type="page" pagePath="(shop)/gro...">
+              <SegmentTrieNode>
+              <ClientPageRoot Component={function WholesalePage} serverProvidedParams={{...}}>
+                <WholesalePage params={Promise} searchParams={Promise}>
+                  <OrderRequestForm title="Pemesanan ..." intro="Untuk peru..." heading="Permintaan..." ...>
+                    <div className="grid max-w...">
+                      <div>
+                      <form onSubmit={function submit} className="grid gap-4...">
+                        <div className="grid gap-4...">
+                          <Field label="Nama perus...">
+                            <div className="grid gap-1.5">
+                              <label>
+                              <Input id="_R_2d5et9e..." aria-invalid={false} aria-describedby={undefined} name="company" ...>
+                                <input
+                                  id="_R_2d5et9erkndlb_"
+                                  aria-invalid={false}
+                                  aria-describedby={undefined}
+                                  name="company"
+                                  required={true}
+                                  className="min-h-10 w-full rounded-md border border-border bg-surface px-3 text-sm a..."
+-                                 style={{caret-color:"transparent"}}
+                                >
+                          <Field label="Nama PIC">
+                            <div className="grid gap-1.5">
+                              <label>
+                              <Input id="_R_4d5et9e..." aria-invalid={false} aria-describedby={undefined} name="pic" ...>
+                                <input
+                                  id="_R_4d5et9erkndlb_"
+                                  aria-invalid={false}
+                                  aria-describedby={undefined}
+                                  name="pic"
+                                  required={true}
+                                  className="min-h-10 w-full rounded-md border border-border bg-surface px-3 text-sm a..."
+-                                 style={{caret-color:"transparent"}}
+                                >
+                        <Field label="Nomor What...">
+                          <div className="grid gap-1.5">
+                            <label>
+                            <Input id="_R_l5et9er..." aria-invalid={false} aria-describedby={undefined} name="phone" ...>
+                              <input
+                                id="_R_l5et9erkndlb_"
+                                aria-invalid={false}
+                                aria-describedby={undefined}
+                                name="phone"
+                                type="tel"
+                                required={true}
+                                className="min-h-10 w-full rounded-md border border-border bg-surface px-3 text-sm ari..."
+-                               style={{caret-color:"transparent"}}
+                              >
+                        <Field label="Produk yan...">
+                          <div className="grid gap-1.5">
+                            <label>
+                            <Input id="_R_2t5et9e..." aria-invalid={false} aria-describedby={undefined} name="product" ...>
+                              <input
+                                id="_R_2t5et9erkndlb_"
+                                aria-invalid={false}
+                                aria-describedby={undefined}
+                                name="product"
+                                placeholder="Contoh: Seragam satpam lengan panjang"
+                                required={true}
+                                className="min-h-10 w-full rounded-md border border-border bg-surface px-3 text-sm ari..."
+-                               style={{caret-color:"transparent"}}
+                              >
+                        <Field label="Jumlah dan..." hint="Contoh: S ...">
+                          <div className="grid gap-1.5">
+                            <label>
+                            <Input id="_R_4t5et9e..." aria-invalid={false} aria-describedby="_R_4t5et9e..." name="qty" ...>
+                              <input
+                                id="_R_4t5et9erkndlb_"
+                                aria-invalid={false}
+                                aria-describedby="_R_4t5et9erkndlb_-msg"
+                                name="qty"
+                                required={true}
+                                className="min-h-10 w-full rounded-md border border-border bg-surface px-3 text-sm ari..."
+-                               style={{caret-color:"transparent"}}
+                              >
+                            ...
+                        <Field label="Dibutuhkan...">
+                          <div className="grid gap-1.5">
+                            <label>
+                            <Input id="_R_6t5et9e..." aria-invalid={false} aria-describedby={undefined} name="deadline" ...>
+                              <input
+                                id="_R_6t5et9erkndlb_"
+                                aria-invalid={false}
+                                aria-describedby={undefined}
+                                name="deadline"
+                                type="date"
+                                className="min-h-10 w-full rounded-md border border-border bg-surface px-3 text-sm ari..."
+-                               style={{caret-color:"transparent"}}
+                              >
+                        <Field label="Catatan ta...">
+                          <div className="grid gap-1.5">
+                            <label>
+                            <Input id="_R_8t5et9e..." aria-invalid={false} aria-describedby={undefined} name="notes">
+                              <input
+                                id="_R_8t5et9erkndlb_"
+                                aria-invalid={false}
+                                aria-describedby={undefined}
+                                name="notes"
+                                className="min-h-10 w-full rounded-md border border-border bg-surface px-3 text-sm ari..."
+-                               style={{caret-color:"transparent"}}
+                              >
+                        ...
+            ...
+          ...
+ 
+ GET /grosir/custom-logo 200 in 45ms (next.js: 4ms, application-code: 40ms)

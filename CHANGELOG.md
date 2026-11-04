@@ -19,3 +19,8 @@
 ## 2026-11-04 - Unggah foto produk
 - Form produk: kolom URL gambar diganti pemilih foto (tarik-lepas, pilih dari komputer/galeri, atau kamera langsung). Foto diperkecil di browser (maks 800px, JPEG) lalu disimpan sebagai data URL di kolom `image_url` (tanpa migrasi).
 - Validasi `image_url` menerima tautan https atau data URL gambar (maks 600 KB).
+
+## 2026-11-04 - Grosir & Custom Logo jadi dua sub halaman
+- `/grosir` (Grosir) dan `/grosir/custom-logo` (Custom Logo) dengan tab berdampingan di atas formulir; menu "Grosir & Custom Logo" tetap menyala di kedua halaman.
+- Grosir: produk, jumlah & ukuran, tanggal dibutuhkan (opsional), catatan. Custom Logo: produk, jumlah, jenis (bordir/sablon), posisi logo (centang), teks, catatan. Keduanya terkirim lewat WhatsApp.
+- Komponen bersama `order-request-form.tsx` untuk kolom perusahaan, PIC, dan WhatsApp.

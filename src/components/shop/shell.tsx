@@ -74,7 +74,8 @@ function Header() {
       <nav aria-label="Menu toko" className="bg-navy-deep">
         <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4">
           {NAV.map((n) => {
-            const current = n.href === "/" ? pathname === "/" : pathname === n.href.split("?")[0] && !n.href.includes("?");
+            const base = n.href.split("?")[0];
+            const current = n.href === "/" ? pathname === "/" : !n.href.includes("?") && (pathname === base || pathname.startsWith(base + "/"));
             return (
               <Link
                 key={n.href}
