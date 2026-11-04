@@ -66,7 +66,7 @@ Urutan deploy: build -> **jalankan migrasi** -> restart/aktifkan versi baru -> s
 - Pelacakan pesanan butuh nomor pesanan DAN nomor WhatsApp. Nomor HP disimpan satu bentuk (`+62...`).
 - Admin/kasir: menu "Pesanan Online" (`/orders`, `GET /api/orders`, `PATCH /api/orders/:id` dengan `action` confirm_payment, ship, complete, cancel). Batal hanya ADMIN.
 - **Isi data toko asli** di `src/lib/shop.ts`: nomor WhatsApp, email, alamat, rekening bank. Nilainya sekarang PLACEHOLDER.
-- Foto produk: isi `image_url` (alamat https) di form produk; kosong = ilustrasi bawaan. Unggah file belum ada (butuh storage).
+- Foto produk: unggah/tarik-lepas/kamera di form produk (disimpan sebagai data URL di `image_url`, tautan https tetap diterima); kosong = ilustrasi bawaan.
 
 ## Demo statis (GitHub Pages)
 
