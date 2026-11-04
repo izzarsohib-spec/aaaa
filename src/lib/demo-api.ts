@@ -32,9 +32,10 @@ function seed(): Store {
       { id: uid(), email: "kasir@demo.id", name: "Kasir Demo", role: "STAFF", password: "demo1234" },
     ],
     products: [
-      p("SRG-001", "Baju Satpam Lengan Pendek", "pcs", 85000, 125000, 24, "Seragam Satpam", "Baju satpam lengan pendek bahan nyaman dan tahan lama, cocok untuk dinas harian."),
-      p("TPI-001", "Topi Satpam Baret", "pcs", 20000, 35000, 40, "Topi", "Topi baret satpam dengan lambang, ukuran dapat disesuaikan."),
-      p("SPT-001", "Sepatu PDL Satpam", "pasang", 140000, 210000, 3, "Sepatu", "Sepatu PDL kulit sintetis, sol anti slip, nyaman dipakai berjaga lama."),
+      p("SRG-001", "Seragam PDH Satpam", "pcs", 85000, 125000, 24, "Seragam Satpam", "Seragam PDH satpam lengan pendek bahan nyaman dan tahan lama, cocok untuk dinas harian."),
+      p("TPI-001", "Topi Pet Satpam", "pcs", 20000, 35000, 40, "Topi", "Topi baret satpam dengan lambang, ukuran dapat disesuaikan."),
+      p("SPT-001", "Sepatu PDH Doof", "pasang", 140000, 210000, 3, "Sepatu", "Sepatu PDL kulit sintetis, sol anti slip, nyaman dipakai berjaga lama."),
+      p("ATR-004", "Rompi Satpam", "pcs", 45000, 75000, 20, "Atribut", "Rompi satpam dengan reflektor, nyaman dipakai berjaga."),
       p("ATR-001", "Ikat Pinggang Satpam", "pcs", 18000, 30000, 30, "Atribut", "Ikat pinggang satpam dengan kepala gesper logam."),
       p("ATR-002", "Papan Nama Satpam", "pcs", 6000, 15000, 0, "Atribut", "Papan nama bordir sesuai nama petugas."),
       p("ATR-003", "Peluit dan Tali", "set", 9000, 18000, 55, "Atribut", "Peluit logam dan tali kur."),

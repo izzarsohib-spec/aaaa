@@ -8,16 +8,28 @@ import { ProductCard, type ShopProduct } from "@/components/shop/product-card";
 import { api, type Paged } from "@/lib/client";
 import { STORE, whatsappLink } from "@/lib/shop";
 
+/* Empat produk unggulan di banner; foto diambil dari produk katalog bila sudah diunggah. */
+const HERO = [
+  { label: "Seragam PDH", category: "Seragam Satpam", match: "pdh" },
+  { label: "Topi Pet Satpam", category: "Topi", match: "pet" },
+  { label: "Sepatu PDH Doof", category: "Sepatu", match: "doof" },
+  { label: "Rompi", category: "Atribut", match: "rompi" },
+];
+
 const TILES = ["Seragam Satpam", "Sepatu", "Topi", "Atribut"];
 
 export default function HomePage() {
   const [items, setItems] = useState<ShopProduct[] | null>(null);
+  const [hero, setHero] = useState<ShopProduct[] | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     api<Paged<ShopProduct>>("/api/shop/products?limit=8&sortBy=newest")
       .then((d) => setItems(d.items))
       .catch(() => setFailed(true));
+    api<Paged<ShopProduct>>("/api/shop/products?limit=100&sortBy=name")
+      .then((d) => setHero(d.items))
+      .catch(() => {});
   }, []);
 
   return (
@@ -49,11 +61,16 @@ export default function HomePage() {
             </a>
           </div>
         </div>
-        <div className="hidden grid-cols-2 gap-3 md:grid" aria-hidden>
-          <ProductArt category="Seragam Satpam" name="Seragam" />
-          <ProductArt category="Topi" name="Topi" />
-          <ProductArt category="Sepatu" name="Sepatu" />
-          <ProductArt category="Atribut" name="Atribut" />
+        <div className="hidden grid-cols-2 gap-3 md:grid">
+          {HERO.map((h) => {
+            const src = hero?.find((p) => p.category === h.category && p.name.toLowerCase().includes(h.match))?.image_url ?? null;
+            return (
+              <div key={h.label} className="grid gap-1.5">
+                <ProductArt category={h.category} name={h.label} src={src} />
+                <p className="text-center text-sm font-medium">{h.label}</p>
+              </div>
+            );
+          })}
         </div>
       </section>
 
