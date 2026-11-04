@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useSession } from "@/components/app-shell";
+import { ImagePicker } from "@/components/image-picker";
 import {
   Alert,
   Badge,
@@ -273,9 +274,11 @@ function ProductDialog({
         <Field label="Deskripsi (tampil di toko online)" error={errors.description}>
           {(a) => <Input {...a} name="description" defaultValue={p?.description ?? ""} maxLength={1000} />}
         </Field>
-        <Field label="URL gambar (opsional)" hint="Alamat https:// ke foto produk. Kosongkan untuk ilustrasi bawaan." error={errors.image_url}>
-          {(a) => <Input {...a} name="image_url" type="url" defaultValue={p?.image_url ?? ""} />}
-        </Field>
+        <div className="grid gap-1.5">
+          <span className="text-sm font-medium">Foto produk (opsional)</span>
+          <ImagePicker key={p?.id ?? "new"} name="image_url" defaultValue={p?.image_url} error={errors.image_url} />
+          <p className="text-sm text-muted">Tanpa foto, toko online memakai ilustrasi bawaan.</p>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Modal / HPP (Rp)" error={errors.cost_price}>
             {(a) => <Input {...a} name="cost_price" type="number" inputMode="numeric" min={0} step={1} defaultValue={p?.cost_price ?? 0} required />}

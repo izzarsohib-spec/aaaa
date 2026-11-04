@@ -15,3 +15,7 @@
 - Migrasi 0001: kolom kategori/deskripsi/gambar produk, tabel orders, order_items, order_events.
 - Mode demo statis (NEXT_PUBLIC_DEMO=1) untuk GitHub Pages: `node scripts/build-demo.mjs`.
 - Nota penjualan pindah ke `/sales/view?id=`.
+
+## 2026-11-04 - Unggah foto produk
+- Form produk: kolom URL gambar diganti pemilih foto (tarik-lepas, pilih dari komputer/galeri, atau kamera langsung). Foto diperkecil di browser (maks 800px, JPEG) lalu disimpan sebagai data URL di kolom `image_url` (tanpa migrasi).
+- Validasi `image_url` menerima tautan https atau data URL gambar (maks 600 KB).

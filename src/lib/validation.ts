@@ -18,6 +18,13 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password wajib diisi").max(200),
 });
 
+/* Foto produk: tautan https atau data URL gambar hasil unggah/kamera (sudah diperkecil di browser). */
+const imageField = z.union([
+  z.literal(""),
+  z.string().trim().url("URL gambar tidak valid").max(500),
+  z.string().regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/, "Format gambar tidak valid").max(600_000, "Foto terlalu besar"),
+]);
+
 export const productCreateSchema = z.object({
   sku: z.string().trim().min(1, "SKU wajib diisi").max(50, "SKU maksimal 50 karakter"),
   name: z.string().trim().min(1, "Nama produk wajib diisi").max(200),
@@ -26,7 +33,7 @@ export const productCreateSchema = z.object({
   selling_price: rupiah("Harga jual"),
   category: z.string().trim().min(1).max(50).default("Lainnya"),
   description: z.string().trim().max(1000).optional(),
-  image_url: z.string().trim().url("URL gambar tidak valid").max(500).optional().or(z.literal("")),
+  image_url: imageField.optional(),
   current_stock: z.number().int("Stok harus bilangan bulat").min(0, "Stok tidak boleh negatif").max(1_000_000).default(0),
 });
 
@@ -37,7 +44,7 @@ export const productUpdateSchema = z
     unit: z.string().trim().min(1).max(20),
     category: z.string().trim().min(1).max(50),
     description: z.string().trim().max(1000),
-    image_url: z.string().trim().url("URL gambar tidak valid").max(500).or(z.literal("")),
+    image_url: imageField,
     cost_price: rupiah("Harga modal"),
     selling_price: rupiah("Harga jual"),
   })
