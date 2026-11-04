@@ -42,3 +42,8 @@
 - Halaman Grosir dirancang ulang jadi 4 langkah (`bulk-order-form.tsx`): 1) pemesan perusahaan/instansi atau perorangan + kontak, 2) pilih barang dari katalog per tab Seragam/Sepatu/Aksesoris dengan pencarian (boleh banyak jenis), 3) kartu per barang berisi kotak qty per ukuran (baju S-L7, celana 28-48, sepatu 37-45; aksesoris cukup jumlah), 4) tanggal dibutuhkan + catatan.
 - Panel "Ringkasan pesanan" di kanan (di bawah pada HP) menampilkan subtotal tiap barang dan total per kategori; pesan WhatsApp dikelompokkan per kategori dengan nomor urut.
 - Komponen dropdown ukuran `size-combobox.tsx` dihapus (tidak dipakai lagi).
+
+## 2026-11-04 - Grosir: PDF permintaan dan nomor tujuan
+- Tombol kirim di Grosir kini membuat PDF di browser (`src/lib/bulk-pdf.ts`, jsPDF + autotable; kop, data pemesan, tabel per kategori, ringkasan, catatan, nomor halaman, baris tidak terpotong antar halaman), mengunduhnya, lalu membuka WhatsApp dengan ringkasan teks singkat. Panel hasil menyediakan "Buka WhatsApp lagi", "Unduh PDF lagi", dan "Bagikan PDF" (HP). WhatsApp tidak bisa menerima lampiran otomatis dari link, jadi customer melampirkan PDF sendiri.
+- Nomor tujuan permintaan Grosir dan Custom Logo dipisah: `WHOLESALE_WHATSAPP` di `src/lib/shop.ts`, sementara nomor uji 6285703191053; ganti dengan nomor Mas Wahyu nanti. `STORE.whatsapp` (kontak umum toko) tidak berubah.
+- Dependensi baru: jspdf, jspdf-autotable.

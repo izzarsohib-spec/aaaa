@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent, type ReactNode } from "react";
 import { Button, Field, Input } from "@/components/ui";
-import { whatsappLink } from "@/lib/shop";
+import { WHOLESALE_WHATSAPP, whatsappLink } from "@/lib/shop";
 
 /* Formulir permintaan penawaran yang dikirim lewat WhatsApp. Kolom pembuka (perusahaan, PIC, WA) sama untuk Grosir dan Custom Logo. */
 export function OrderRequestForm({
@@ -37,7 +37,7 @@ export function OrderRequestForm({
       "No. WhatsApp: " + get("phone"),
       ...buildLines(get, f),
     ].join("\n");
-    window.open(whatsappLink(msg), "_blank", "noopener");
+    window.open(whatsappLink(msg, WHOLESALE_WHATSAPP), "_blank", "noopener");
     setSent(true);
   }
 

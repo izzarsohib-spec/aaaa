@@ -11,6 +11,12 @@ export const STORE = {
   bank: { name: "BCA", number: "123 456 7890", holder: "Adzkia Collection" },
 } as const;
 
+/**
+ * Tujuan permintaan Grosir & Custom Logo (WhatsApp, format 62...).
+ * Sementara memakai nomor uji; nanti ganti dengan nomor Mas Wahyu.
+ */
+export const WHOLESALE_WHATSAPP = "6285703191053";
+
 export const CATEGORIES = ["Seragam Satpam", "Celana", "Sepatu", "Topi", "Atribut", "Paket Hemat", "Lainnya"] as const;
 
 /** Ongkir tetap (estimasi). Dihitung ulang di server, tidak dipercaya dari klien. */

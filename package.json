@@ -18,6 +18,8 @@
     "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.4",
     "jose": "^6.2.13",
+    "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.9",
     "next": "16.4.3",
     "postgres": "^3.4.9",
     "react": "19.3.0",

@@ -4,11 +4,13 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Button, Input } from "@/components/ui";
 import { ProductArt } from "@/components/shop/product-art";
 import { api, type Paged } from "@/lib/client";
-import { whatsappLink } from "@/lib/shop";
+import { STORE, WHOLESALE_WHATSAPP, whatsappLink } from "@/lib/shop";
+import type { PdfSection } from "@/lib/bulk-pdf";
 
 type Cat = "seragam" | "sepatu" | "aksesoris";
 type Product = { name: string; category: string; image_url: string | null };
 /* Jumlah per ukuran, kunci "grup:ukuran" (mis. "baju:M"); aksesoris memakai kunci "qty". */
+type Result = { fileName: string; url: string; file: File; wa: string };
 type Line = { cat: Cat; name: string; category: string; image: string | null; qty: Record<string, number> };
 
 const SIZE_GROUPS: Record<Cat, { key: string; label: string; sizes: string[] }[]> = {
@@ -28,7 +30,7 @@ const CATS: { key: Cat; label: string; hint: string; unit: string; categories: s
 
 const lineTotal = (l: Line) => Object.values(l.qty).reduce((a, n) => a + n, 0);
 const sizesText = (l: Line, group: string, sizes: string[]) =>
-  sizes.filter((s) => (l.qty[group + ":" + s] ?? 0) > 0).map((s) => s + " " + l.qty[group + ":" + s]);
+  sizes.filter((s) => (l.qty[group + ":" + s] ?? 0) > 0).map((s) => s + " ×" + l.qty[group + ":" + s]);
 
 async function loadCatalog(): Promise<Record<Cat, Product[]>> {
   const out = {} as Record<Cat, Product[]>;
@@ -101,10 +103,14 @@ export function BulkOrderForm() {
   const [search, setSearch] = useState("");
   const [lines, setLines] = useState<Line[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<Result | null>(null);
 
   useEffect(() => {
     loadCatalog().then(setCatalog);
+    // Muat pustaka PDF lebih awal supaya tombol kirim terasa cepat.
+    void import("jspdf");
+    void import("jspdf-autotable");
   }, []);
 
   const has = (cat: Cat, name: string) => lines.some((l) => l.cat === cat && l.name === name);
@@ -116,40 +122,110 @@ export function BulkOrderForm() {
   const shown = (catalog?.[tab] ?? []).filter((p) => p.name.toLowerCase().includes(search.trim().toLowerCase()));
   const totals = CATS.map((c) => ({ ...c, n: lines.filter((l) => l.cat === c.key).reduce((a, l) => a + lineTotal(l), 0), kinds: lines.filter((l) => l.cat === c.key).length }));
 
-  function message(f: FormData) {
-    const get = (k: string) => String(f.get(k) ?? "").trim();
-    const out = ["Permintaan penawaran grosir", ""];
-    if (who === "company") out.push("Pemesan: Perusahaan / instansi", "Perusahaan: " + get("company"), "PIC: " + get("pic"));
-    else out.push("Pemesan: Perorangan", "Nama: " + get("pic"));
-    out.push("No. WhatsApp: " + get("phone"));
-    for (const c of CATS) {
+  function pdfSections(): PdfSection[] {
+    return CATS.flatMap((c) => {
       const ls = lines.filter((l) => l.cat === c.key);
-      if (!ls.length) continue;
-      out.push("", "== " + c.label.toUpperCase() + " ==");
-      ls.forEach((l, i) => {
-        out.push(i + 1 + ". " + l.name);
-        if (c.key === "aksesoris") out.push("   Jumlah: " + (l.qty.qty ?? 0));
-        else
-          for (const g of SIZE_GROUPS[c.key]) {
-            const t = sizesText(l, g.key, g.sizes);
-            if (t.length) out.push("   " + g.label.replace("Ukuran ", "").replace(/^./, (x) => x.toUpperCase()) + ": " + t.join(", "));
-          }
-        out.push("   Subtotal: " + lineTotal(l) + " " + c.unit);
-      });
-    }
-    out.push("", "Dibutuhkan paling lambat: " + (get("deadline") || "-"), "Catatan: " + (get("notes") || "-"));
-    return out.join("\n");
+      if (!ls.length) return [];
+      return [
+        {
+          title: c.label,
+          unit: c.unit,
+          sizes: c.key !== "aksesoris",
+          items: ls.map((l) => ({
+            name: l.name,
+            total: lineTotal(l),
+            lines: SIZE_GROUPS[c.key].flatMap((g) => {
+              const t = sizesText(l, g.key, g.sizes);
+              return t.length ? [{ label: c.key === "sepatu" ? "Ukuran" : g.label.replace("Ukuran ", "").replace(/^./, (x) => x.toUpperCase()), text: t.join(", ") }] : [];
+            }),
+          })),
+        },
+      ];
+    });
   }
 
-  function submit(e: FormEvent<HTMLFormElement>) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (busy) return;
     if (lines.length === 0) return setError("Pilih minimal satu barang dulu di langkah 2.");
     const empty = lines.filter((l) => lineTotal(l) === 0).map((l) => l.name);
     if (empty.length) return setError("Isi jumlah untuk: " + empty.join(", ") + " (atau hapus barangnya).");
     setError(null);
-    window.open(whatsappLink(message(new FormData(e.currentTarget))), "_blank", "noopener");
-    setSent(true);
+    setBusy(true);
+    // Tab WhatsApp dibuka sekarang (masih dalam klik) agar tidak diblokir; alamatnya diisi setelah PDF jadi.
+    const tab = window.open("", "_blank");
+    try {
+      const f = new FormData(e.currentTarget);
+      const get = (k: string) => String(f.get(k) ?? "").trim();
+      const { buildOrderPdf } = await import("@/lib/bulk-pdf");
+
+      const digits = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Jakarta", dateStyle: "short", timeStyle: "short" }).format(new Date()).replace(/\D/g, "");
+      const number = "REQ-" + digits.slice(0, 8) + "-" + digits.slice(8, 12);
+      const longDate = (d: Date) => d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" });
+      const deadline = get("deadline") ? longDate(new Date(get("deadline") + "T00:00:00+07:00")) : "-";
+      const name = who === "company" ? get("company") : get("pic");
+
+      const needed: [string, string] = ["Dibutuhkan", deadline === "-" ? "-" : "Paling lambat " + deadline];
+      const fields: [string, string][] =
+        who === "company"
+          ? [["Jenis pemesan", "Perusahaan / instansi"], ["Perusahaan", get("company")], ["PIC", get("pic")], ["No. WhatsApp", get("phone")], needed]
+          : [["Jenis pemesan", "Perorangan"], ["Nama", get("pic")], ["No. WhatsApp", get("phone")], needed];
+
+      const blob = await buildOrderPdf({
+        storeName: STORE.name,
+        tagline: "Seragam satpam, sepatu, dan atribut",
+        number,
+        dateText: longDate(new Date()),
+        fields,
+        sections: pdfSections(),
+        notes: get("notes"),
+      });
+      const fileName = "Permintaan-Grosir-" + (name.replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 30) || "Pemesan") + "-" + digits.slice(0, 8) + ".pdf";
+      const file = new File([blob], fileName, { type: "application/pdf" });
+      const url = URL.createObjectURL(file);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      a.click();
+
+      const totalsText = totals.filter((t) => t.n > 0).map((t) => t.label + " " + t.n + " " + t.unit).join(", ");
+      const text = [
+        "Permintaan penawaran grosir " + number,
+        who === "company" ? name + " (PIC " + get("pic") + ")" : name,
+        "No. WhatsApp: " + get("phone"),
+        "Total: " + totalsText,
+        "Dibutuhkan paling lambat: " + deadline,
+        "",
+        "Rincian lengkap ada di file PDF terlampir (" + fileName + ").",
+      ].join("\n");
+      const wa = whatsappLink(text, WHOLESALE_WHATSAPP);
+      if (tab) tab.location.href = wa;
+      else window.open(wa, "_blank", "noopener");
+      if (result) URL.revokeObjectURL(result.url);
+      setResult({ fileName, url, file, wa });
+    } catch {
+      tab?.close();
+      setError("PDF gagal dibuat. Coba lagi, atau hubungi kami lewat WhatsApp.");
+    } finally {
+      setBusy(false);
+    }
   }
+
+  async function sharePdf() {
+    if (!result) return;
+    try {
+      await navigator.share({ files: [result.file], title: result.fileName });
+    } catch {
+      /* dibatalkan pengguna */
+    }
+  }
+  const canShare = (() => {
+    try {
+      return Boolean(result && typeof navigator !== "undefined" && navigator.canShare?.({ files: [result.file] }));
+    } catch {
+      return false;
+    }
+  })();
 
   return (
     <form onSubmit={submit} className="grid max-w-6xl gap-6">
@@ -332,8 +408,35 @@ export function BulkOrderForm() {
               {error}
             </p>
           )}
-          <Button type="submit">Kirim permintaan via WhatsApp</Button>
-          {sent && <p role="status" className="text-sm text-muted">WhatsApp terbuka di tab baru. Bila tidak terbuka, izinkan pop-up lalu kirim ulang.</p>}
+          <Button type="submit" loading={busy}>
+            {busy ? "Membuat PDF…" : "Buat PDF & kirim via WhatsApp"}
+          </Button>
+          {result && (
+            <div role="status" className="grid gap-2 rounded-md border border-green-300 bg-green-50 p-3 text-sm">
+              <p className="font-semibold text-green-800">PDF sudah dibuat</p>
+              <ol className="grid gap-1.5 text-green-900">
+                <li>
+                  1. File <b className="break-all">{result.fileName}</b> terunduh ke perangkat Anda.
+                </li>
+                <li>
+                  2. WhatsApp terbuka ke nomor kami. <b>Lampirkan PDF itu</b> (ikon klip, lalu Dokumen), lalu tekan kirim.
+                </li>
+              </ol>
+              <div className="flex flex-wrap gap-2 pt-1">
+                <a href={result.wa} target="_blank" rel="noreferrer" className="rounded-md bg-green-700 px-3 py-1.5 font-medium text-white hover:bg-green-800">
+                  Buka WhatsApp lagi
+                </a>
+                <a href={result.url} download={result.fileName} className="rounded-md border border-green-700 px-3 py-1.5 font-medium text-green-800 hover:bg-green-100">
+                  Unduh PDF lagi
+                </a>
+                {canShare && (
+                  <button type="button" onClick={sharePdf} className="rounded-md border border-green-700 px-3 py-1.5 font-medium text-green-800 hover:bg-green-100">
+                    Bagikan PDF
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </aside>
       </div>
     </form>
