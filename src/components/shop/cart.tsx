@@ -12,7 +12,7 @@ interface CartApi {
   lines: CartLine[];
   count: number;
   ready: boolean;
-  add: (productId: string, qty?: number, max?: number, size?: string) => void;
+  add: (productId: string, qty?: number, max?: number, size?: string, replace?: boolean) => void;
   setQty: (productId: string, qty: number, max?: number, size?: string) => void;
   remove: (productId: string, size?: string) => void;
   clear: () => void;
@@ -58,11 +58,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       lines,
       count: lines.reduce((a, l) => a + l.quantity, 0),
       ready,
-      add: (id, qty = 1, max, size) => {
+      add: (id, qty = 1, max, size, replace) => {
         const found = lines.find((l) => same(l, id, size));
         persist(
           found
-            ? lines.map((l) => (same(l, id, size) ? { ...l, quantity: clamp(l.quantity + qty, max) } : l))
+            ? lines.map((l) => (same(l, id, size) ? { ...l, quantity: clamp(replace ? qty : l.quantity + qty, max) } : l))
             : [...lines, { product_id: id, quantity: clamp(qty, max), ...(size ? { size } : {}) }],
         );
       },

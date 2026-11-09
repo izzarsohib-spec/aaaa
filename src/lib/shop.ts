@@ -23,7 +23,25 @@ export const PANTS_SIZES = ["28", "30", "32", "34", "36", "38", "40", "42", "44"
 
 /** Seragam wajib memilih ukuran baju dan celana. */
 export const needsSize = (category: string) => category === "Seragam Satpam";
-export const sizeLabel = (shirt: string, pants: string) => "Baju " + shirt + " / Celana " + pants;
+export interface SizeRow {
+  size: string;
+  qty: number;
+}
+
+/** Gabungkan ukuran yang sama, urut sesuai daftar ukuran. */
+export function mergeRows(rows: SizeRow[], order: readonly string[]): SizeRow[] {
+  const m = new Map<string, number>();
+  for (const r of rows) if (r.size && r.qty > 0) m.set(r.size, (m.get(r.size) ?? 0) + r.qty);
+  return [...m].map(([size, qty]) => ({ size, qty })).sort((a, b) => order.indexOf(a.size) - order.indexOf(b.size));
+}
+
+export const sumRows = (rows: SizeRow[]) => rows.reduce((a, r) => a + (r.size && r.qty > 0 ? r.qty : 0), 0);
+
+/** Contoh: "Baju L×3, XL×1 | Celana 30×2, 32×2". */
+export function sizeLabel(shirts: SizeRow[], pants: SizeRow[]) {
+  const f = (rows: SizeRow[]) => rows.map((r) => r.size + "×" + r.qty).join(", ");
+  return "Baju " + f(shirts) + " | Celana " + f(pants);
+}
 
 export const CATEGORIES = ["Seragam Satpam", "Sepatu", "Topi", "Atribut", "Lainnya"] as const;
 
