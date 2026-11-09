@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { Alert, Button, Skeleton, useToast } from "@/components/ui";
+import { Alert, Button, Skeleton } from "@/components/ui";
 import { useCart } from "@/components/shop/cart";
 import { ProductArt } from "@/components/shop/product-art";
-import type { ShopProduct } from "@/components/shop/product-card";
+import { AddToCartDialog, type ShopProduct } from "@/components/shop/product-card";
 import { formatRupiah } from "@/lib/calculations";
 import { api } from "@/lib/client";
 import { EMPTY_SIZES, SizePicker, type Sizes } from "@/components/shop/size-picker";
@@ -16,12 +16,12 @@ function Detail() {
   const id = useSearchParams().get("id");
   const router = useRouter();
   const cart = useCart();
-  const toast = useToast();
   const [p, setP] = useState<ShopProduct | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
   const [sizes, setSizes] = useState<Sizes>(EMPTY_SIZES);
   const [tried, setTried] = useState(false);
+  const [dialog, setDialog] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -86,7 +86,7 @@ function Detail() {
               variant="secondary"
               disabled={out}
               onClick={() => {
-                if (addToCart()) toast(p.name + " masuk keranjang");
+                setDialog(true);
               }}
             >
               Masukkan keranjang
@@ -101,6 +101,7 @@ function Detail() {
               Beli sekarang
             </button>
           </div>
+          <AddToCartDialog p={p} open={dialog} onClose={() => setDialog(false)} initialQty={qty} initialSizes={sizes} />
           <a
             href={whatsappLink("Halo " + STORE.name + ", saya ingin bertanya tentang " + p.name + " (" + p.sku + ").")}
             target="_blank"
