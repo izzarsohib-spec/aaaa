@@ -42,8 +42,7 @@ export function ProductCard({ p }: { p: ShopProduct }) {
         <button
           disabled={out}
           onClick={() => {
-            cart.add(p.id, 1, p.current_stock);
-            router.push("/keranjang");
+            router.push("/produk?id=" + p.id);
           }}
           className="min-h-10 rounded-md bg-gold px-3 text-sm font-bold text-navy hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
