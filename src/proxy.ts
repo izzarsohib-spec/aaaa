@@ -7,7 +7,7 @@ export async function proxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
 
   if (!session) {
-    const url = new URL("/login", req.url);
+    const url = new URL("/staff", req.url);
     url.searchParams.set("next", pathname + search);
     return NextResponse.redirect(url);
   }

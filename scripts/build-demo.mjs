@@ -61,7 +61,7 @@ export default function DemoLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const s = demoSession();
-    if (!s) router.replace("/login");
+    if (!s) router.replace("/staff");
     else if (s.role !== "ADMIN" && pathname.startsWith("/users")) router.replace("/dashboard");
     else setSession(s);
   }, [router, pathname]);
@@ -78,7 +78,7 @@ export default function DemoLayout({ children }: { children: ReactNode }) {
 );
 
 writeFileSync(
-  path.join(tmp, "src/app/(auth)/login/page.tsx"),
+  path.join(tmp, "src/app/(auth)/staff/page.tsx"),
   `"use client";
 
 import { useRouter } from "next/navigation";

@@ -4,6 +4,6 @@ import { getSession } from "@/lib/auth";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) redirect("/staff");
   return <AppShell session={{ name: session.name, role: session.role }}>{children}</AppShell>;
 }

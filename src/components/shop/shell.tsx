@@ -65,9 +65,6 @@ function Header() {
               </span>
             )}
           </Link>
-          <Link href="/login" className="rounded-md px-3 py-2 text-sm text-blue-100 hover:bg-white/10">
-            Masuk Staf
-          </Link>
         </div>
       </div>
       <nav aria-label="Menu toko" className="bg-navy-deep">
@@ -135,7 +132,7 @@ export function ShopShell({ children }: { children: ReactNode }) {
       <Header />
       {process.env.NEXT_PUBLIC_DEMO ? (
         <p className="bg-amber-50 px-4 py-2 text-center text-sm text-amber-900">
-          Mode demo: produk dan pesanan hanya contoh dan tersimpan di browser ini. Pemilik/kasir masuk lewat "Masuk Staf" (password demo1234).
+          Mode demo: produk dan pesanan hanya contoh dan tersimpan di browser ini.
         </p>
       ) : null}
       <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>

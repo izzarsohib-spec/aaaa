@@ -19,7 +19,7 @@ async function demoCall<T>(path: string, method: string, body: unknown): Promise
     return (await demoApi(path, method, body)) as T;
   } catch (e) {
     if (e instanceof ApiError && e.status === 401 && !path.startsWith("/api/auth/login")) {
-      window.location.href = BASE + "/login";
+      window.location.href = BASE + "/staff";
     }
     throw e;
   }
@@ -60,7 +60,7 @@ export async function api<T = unknown>(
     /* non-JSON */
   }
   if (res.status === 401 && !path.startsWith("/api/auth/login")) {
-    window.location.href = BASE + "/login?next=" + encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.href = BASE + "/staff?next=" + encodeURIComponent(window.location.pathname + window.location.search);
     throw new ApiError("Sesi berakhir", 401, "UNAUTHORIZED");
   }
   if (!res.ok || json.success === false) {

@@ -31,7 +31,7 @@ export function AppShell({ session, children }: { session: SessionInfo; children
 
   async function logout() {
     await api("/api/auth/logout", { method: "POST" }).catch(() => {});
-    router.replace("/login");
+    router.replace("/staff");
     router.refresh();
   }
 
