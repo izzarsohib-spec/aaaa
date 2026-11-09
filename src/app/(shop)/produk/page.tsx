@@ -9,7 +9,8 @@ import { ProductArt } from "@/components/shop/product-art";
 import type { ShopProduct } from "@/components/shop/product-card";
 import { formatRupiah } from "@/lib/calculations";
 import { api } from "@/lib/client";
-import { STORE, whatsappLink } from "@/lib/shop";
+import { EMPTY_SIZES, SizePicker, type Sizes } from "@/components/shop/size-picker";
+import { STORE, needsSize, sizeLabel, whatsappLink } from "@/lib/shop";
 
 function Detail() {
   const id = useSearchParams().get("id");
@@ -19,6 +20,8 @@ function Detail() {
   const [p, setP] = useState<ShopProduct | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
+  const [sizes, setSizes] = useState<Sizes>(EMPTY_SIZES);
+  const [tried, setTried] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -44,6 +47,15 @@ function Detail() {
 
   const out = p.current_stock <= 0;
   const max = p.current_stock;
+  const sized = needsSize(p.category);
+  const addToCart = () => {
+    if (sized && (!sizes.shirt || !sizes.pants)) {
+      setTried(true);
+      return false;
+    }
+    cart.add(p.id, qty, max, sized ? sizeLabel(sizes.shirt, sizes.pants) : undefined);
+    return true;
+  };
 
   return (
     <div className="grid gap-6">
@@ -59,6 +71,7 @@ function Detail() {
             {out ? "Stok habis" : "Stok tersedia: " + p.current_stock + " " + p.unit} · SKU {p.sku}
           </p>
           {p.description && <p className="max-w-[60ch] text-sm leading-relaxed">{p.description}</p>}
+          {sized && <SizePicker value={sizes} onChange={setSizes} error={tried} />}
           <div className="flex items-center gap-2" role="group" aria-label="Jumlah">
             <Button variant="secondary" className="min-w-10 px-0" disabled={out || qty <= 1} onClick={() => setQty(qty - 1)} aria-label="Kurangi jumlah">
               -
@@ -73,8 +86,7 @@ function Detail() {
               variant="secondary"
               disabled={out}
               onClick={() => {
-                cart.add(p.id, qty, max);
-                toast(p.name + " masuk keranjang");
+                if (addToCart()) toast(p.name + " masuk keranjang");
               }}
             >
               Masukkan keranjang
@@ -82,8 +94,7 @@ function Detail() {
             <button
               disabled={out}
               onClick={() => {
-                cart.add(p.id, qty, max);
-                router.push("/keranjang");
+                if (addToCart()) router.push("/keranjang");
               }}
               className="min-h-10 rounded-md bg-gold px-4 text-sm font-bold text-navy hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-50"
             >

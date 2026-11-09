@@ -52,6 +52,12 @@ export default function CheckoutPage() {
   const subtotal = rows.reduce((a, r) => a + (r.p ? calculateSubtotal(r.p.selling_price, r.line.quantity) : 0), 0);
   const ship = SHIPPING.find((s) => s.id === shipping)!;
 
+  function orderNotes(extra: string) {
+    const sizes = rows.filter((r) => r.line.size).map((r) => (r.p?.name ?? "Produk") + " x" + r.line.quantity + " (" + r.line.size + ")");
+    const text = [sizes.length ? "Ukuran: " + sizes.join("; ") : "", extra.trim()].filter(Boolean).join(". ");
+    return text.slice(0, 500) || undefined;
+  }
+
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (inFlight.current) return;
@@ -71,8 +77,8 @@ export default function CheckoutPage() {
           city: String(f.get("city")),
           postal_code: String(f.get("postal_code") || "") || undefined,
           shipping_method: shipping,
-          notes: String(f.get("notes") || "") || undefined,
-          items: cart.lines,
+          notes: orderNotes(String(f.get("notes") || "")),
+          items: cart.lines.map((l) => ({ product_id: l.product_id, quantity: l.quantity })),
         },
       });
       rememberOrder(order.order_number, phone);
@@ -124,8 +130,8 @@ export default function CheckoutPage() {
         <h2 className="font-semibold">Ringkasan pesanan</h2>
         <ul className="grid gap-2 text-sm">
           {rows.map(({ line, p }) => (
-            <li key={line.product_id} className="flex justify-between gap-3">
-              <span>{p ? p.name : "Produk tidak tersedia"} × {line.quantity}</span>
+            <li key={line.product_id + "|" + (line.size ?? "")} className="flex justify-between gap-3">
+              <span>{p ? p.name : "Produk tidak tersedia"} × {line.quantity}{line.size && <span className="block text-xs text-muted">{line.size}</span>}</span>
               <span>{p ? formatRupiah(calculateSubtotal(p.selling_price, line.quantity)) : "-"}</span>
             </li>
           ))}

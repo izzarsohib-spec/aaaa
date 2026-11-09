@@ -6,6 +6,8 @@ import { formatRupiah } from "@/lib/calculations";
 import { useState } from "react";
 import { useCart } from "./cart";
 import { ProductArt } from "./product-art";
+import { EMPTY_SIZES, SizePicker, type Sizes } from "./size-picker";
+import { needsSize, sizeLabel } from "@/lib/shop";
 import { Button, Dialog, useToast } from "@/components/ui";
 
 export interface ShopProduct {
@@ -27,6 +29,9 @@ export function ProductCard({ p }: { p: ShopProduct }) {
   const out = p.current_stock <= 0;
   const [open, setOpen] = useState(false);
   const [qty, setQty] = useState(1);
+  const [sizes, setSizes] = useState<Sizes>(EMPTY_SIZES);
+  const [tried, setTried] = useState(false);
+  const sized = needsSize(p.category);
   const max = Math.max(1, p.current_stock);
   return (
     <article className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-3">
@@ -56,6 +61,8 @@ export function ProductCard({ p }: { p: ShopProduct }) {
           disabled={out}
           onClick={() => {
             setQty(1);
+            setSizes(EMPTY_SIZES);
+            setTried(false);
             setOpen(true);
           }}
           className="min-h-10 rounded-md border border-border px-3 text-sm font-medium hover:bg-background disabled:cursor-not-allowed disabled:opacity-50"
@@ -73,6 +80,7 @@ export function ProductCard({ p }: { p: ShopProduct }) {
             <p className="text-sm text-muted">{formatRupiah(p.selling_price)} / {p.unit} · Stok {p.current_stock}</p>
           </div>
         </div>
+        {sized && <SizePicker value={sizes} onChange={setSizes} error={tried} />}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2" role="group" aria-label="Jumlah">
             <Button variant="secondary" className="min-w-10 px-0" disabled={qty <= 1} onClick={() => setQty(qty - 1)} aria-label="Kurangi jumlah">
@@ -91,7 +99,11 @@ export function ProductCard({ p }: { p: ShopProduct }) {
           </Button>
           <button
             onClick={() => {
-              cart.add(p.id, qty, p.current_stock);
+              if (sized && (!sizes.shirt || !sizes.pants)) {
+                setTried(true);
+                return;
+              }
+              cart.add(p.id, qty, p.current_stock, sized ? sizeLabel(sizes.shirt, sizes.pants) : undefined);
               toast(qty + " x " + p.name + " masuk keranjang");
               setOpen(false);
             }}

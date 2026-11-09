@@ -59,13 +59,14 @@ export default function CartPage() {
       <div className="grid gap-5 lg:grid-cols-[1fr_20rem]">
         <ul className="grid gap-3">
           {rows.map(({ line, p }) => (
-            <li key={line.product_id} className="grid grid-cols-[5rem_1fr] gap-3 rounded-lg border border-border bg-surface p-3">
+            <li key={line.product_id + "|" + (line.size ?? "")} className="grid grid-cols-[5rem_1fr] gap-3 rounded-lg border border-border bg-surface p-3">
               {p ? <ProductArt category={p.category} name={p.name} src={p.image_url} /> : <div className="aspect-square rounded-md bg-zinc-200" />}
               <div className="grid content-start gap-1">
                 {p ? (
                   <>
                     <p className="font-medium">{p.name}</p>
                     <p className="text-sm text-muted">{formatRupiah(p.selling_price)} / {p.unit}</p>
+                    {line.size && <p className="text-sm font-medium">Ukuran: {line.size}</p>}
                     {line.quantity > p.current_stock && (
                       <p className="text-sm font-medium text-danger" role="alert">
                         {p.current_stock > 0 ? "Stok tersisa " + p.current_stock + ". Kurangi jumlah." : "Stok habis. Hapus dari keranjang."}
@@ -76,11 +77,11 @@ export default function CartPage() {
                   <p className="text-sm font-medium text-danger" role="alert">Produk ini sudah tidak tersedia.</p>
                 )}
                 <div className="flex flex-wrap items-center gap-2 pt-1">
-                  <Button variant="secondary" className="min-w-10 px-0" disabled={line.quantity <= 1} onClick={() => cart.setQty(line.product_id, line.quantity - 1, p?.current_stock)} aria-label="Kurangi jumlah">-</Button>
+                  <Button variant="secondary" className="min-w-10 px-0" disabled={line.quantity <= 1} onClick={() => cart.setQty(line.product_id, line.quantity - 1, p?.current_stock, line.size)} aria-label="Kurangi jumlah">-</Button>
                   <span className="w-8 text-center" aria-live="polite">{line.quantity}</span>
-                  <Button variant="secondary" className="min-w-10 px-0" disabled={!p || line.quantity >= p.current_stock} onClick={() => cart.setQty(line.product_id, line.quantity + 1, p?.current_stock)} aria-label="Tambah jumlah">+</Button>
+                  <Button variant="secondary" className="min-w-10 px-0" disabled={!p || line.quantity >= p.current_stock} onClick={() => cart.setQty(line.product_id, line.quantity + 1, p?.current_stock, line.size)} aria-label="Tambah jumlah">+</Button>
                   <span className="ml-auto font-semibold">{p ? formatRupiah(calculateSubtotal(p.selling_price, line.quantity)) : "-"}</span>
-                  <button onClick={() => cart.remove(line.product_id)} className="text-sm text-danger hover:underline" aria-label="Hapus dari keranjang">Hapus</button>
+                  <button onClick={() => cart.remove(line.product_id, line.size)} className="text-sm text-danger hover:underline" aria-label="Hapus dari keranjang">Hapus</button>
                 </div>
               </div>
             </li>

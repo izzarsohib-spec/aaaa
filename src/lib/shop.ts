@@ -18,6 +18,13 @@ export const STORE = {
  */
 export const WHOLESALE_WHATSAPP = "6285703191053";
 
+export const SHIRT_SIZES = ["S", "M", "L", "XL", "XXL", "L4", "L5", "L6"] as const;
+export const PANTS_SIZES = ["28", "30", "32", "34", "36", "38", "40", "42", "44", "46", "48"] as const;
+
+/** Seragam wajib memilih ukuran baju dan celana. */
+export const needsSize = (category: string) => category === "Seragam Satpam";
+export const sizeLabel = (shirt: string, pants: string) => "Baju " + shirt + " / Celana " + pants;
+
 export const CATEGORIES = ["Seragam Satpam", "Sepatu", "Topi", "Atribut", "Lainnya"] as const;
 
 /** Ongkir tetap (estimasi). Dihitung ulang di server, tidak dipercaya dari klien. */

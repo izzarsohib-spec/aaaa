@@ -5,15 +5,16 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 export interface CartLine {
   product_id: string;
   quantity: number;
+  size?: string;
 }
 
 interface CartApi {
   lines: CartLine[];
   count: number;
   ready: boolean;
-  add: (productId: string, qty?: number, max?: number) => void;
-  setQty: (productId: string, qty: number, max?: number) => void;
-  remove: (productId: string) => void;
+  add: (productId: string, qty?: number, max?: number, size?: string) => void;
+  setQty: (productId: string, qty: number, max?: number, size?: string) => void;
+  remove: (productId: string, size?: string) => void;
   clear: () => void;
 }
 
@@ -49,6 +50,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const same = (l: CartLine, id: string, size?: string) => l.product_id === id && (l.size ?? "") === (size ?? "");
   const clamp = (q: number, max?: number) => Math.max(1, Math.min(q, max ?? 1000));
 
   const api = useMemo<CartApi>(
@@ -56,16 +58,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
       lines,
       count: lines.reduce((a, l) => a + l.quantity, 0),
       ready,
-      add: (id, qty = 1, max) => {
-        const found = lines.find((l) => l.product_id === id);
+      add: (id, qty = 1, max, size) => {
+        const found = lines.find((l) => same(l, id, size));
         persist(
           found
-            ? lines.map((l) => (l.product_id === id ? { ...l, quantity: clamp(l.quantity + qty, max) } : l))
-            : [...lines, { product_id: id, quantity: clamp(qty, max) }],
+            ? lines.map((l) => (same(l, id, size) ? { ...l, quantity: clamp(l.quantity + qty, max) } : l))
+            : [...lines, { product_id: id, quantity: clamp(qty, max), ...(size ? { size } : {}) }],
         );
       },
-      setQty: (id, qty, max) => persist(lines.map((l) => (l.product_id === id ? { ...l, quantity: clamp(qty, max) } : l))),
-      remove: (id) => persist(lines.filter((l) => l.product_id !== id)),
+      setQty: (id, qty, max, size) => persist(lines.map((l) => (same(l, id, size) ? { ...l, quantity: clamp(qty, max) } : l))),
+      remove: (id, size) => persist(lines.filter((l) => !same(l, id, size))),
       clear: () => persist([]),
     }),
     [lines, ready, persist],
