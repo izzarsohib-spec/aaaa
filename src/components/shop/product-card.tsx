@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatRupiah } from "@/lib/calculations";
+import { useState } from "react";
 import { useCart } from "./cart";
 import { ProductArt } from "./product-art";
-import { useToast } from "@/components/ui";
+import { Button, Dialog, useToast } from "@/components/ui";
 
 export interface ShopProduct {
   id: string;
@@ -24,6 +25,9 @@ export function ProductCard({ p }: { p: ShopProduct }) {
   const toast = useToast();
   const router = useRouter();
   const out = p.current_stock <= 0;
+  const [open, setOpen] = useState(false);
+  const [qty, setQty] = useState(1);
+  const max = Math.max(1, p.current_stock);
   return (
     <article className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-3">
       <Link href={"/produk?id=" + p.id} aria-label={p.name}>
@@ -51,14 +55,52 @@ export function ProductCard({ p }: { p: ShopProduct }) {
         <button
           disabled={out}
           onClick={() => {
-            cart.add(p.id, 1, p.current_stock);
-            toast(p.name + " masuk keranjang");
+            setQty(1);
+            setOpen(true);
           }}
           className="min-h-10 rounded-md border border-border px-3 text-sm font-medium hover:bg-background disabled:cursor-not-allowed disabled:opacity-50"
         >
           Masukkan keranjang
         </button>
       </div>
+      <Dialog open={open} title="Masukkan ke keranjang" onClose={() => setOpen(false)}>
+        <div className="flex items-center gap-3">
+          <div className="w-20 shrink-0">
+            <ProductArt category={p.category} name={p.name} src={p.image_url} />
+          </div>
+          <div className="grid gap-1">
+            <p className="text-sm font-medium">{p.name}</p>
+            <p className="text-sm text-muted">{formatRupiah(p.selling_price)} / {p.unit} · Stok {p.current_stock}</p>
+          </div>
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2" role="group" aria-label="Jumlah">
+            <Button variant="secondary" className="min-w-10 px-0" disabled={qty <= 1} onClick={() => setQty(qty - 1)} aria-label="Kurangi jumlah">
+              -
+            </Button>
+            <span className="w-10 text-center font-medium" aria-live="polite">{qty}</span>
+            <Button variant="secondary" className="min-w-10 px-0" disabled={qty >= max} onClick={() => setQty(qty + 1)} aria-label="Tambah jumlah">
+              +
+            </Button>
+          </div>
+          <p className="text-lg font-bold text-navy">{formatRupiah(p.selling_price * qty)}</p>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Button variant="secondary" onClick={() => setOpen(false)}>
+            Batal
+          </Button>
+          <button
+            onClick={() => {
+              cart.add(p.id, qty, p.current_stock);
+              toast(qty + " x " + p.name + " masuk keranjang");
+              setOpen(false);
+            }}
+            className="min-h-10 rounded-md bg-gold px-4 text-sm font-bold text-navy hover:bg-gold-hover"
+          >
+            Masukkan keranjang
+          </button>
+        </div>
+      </Dialog>
     </article>
   );
 }
