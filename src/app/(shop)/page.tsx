@@ -40,6 +40,15 @@ export default function HomePage() {
             <br />
             Lengkap &amp; Berkualitas
           </h1>
+          <div className="grid gap-1 text-sm text-blue-100">
+            {STORE.address && <p>📍 {STORE.address}</p>}
+            <p>
+              📞{" "}
+              <a href={"tel:+" + STORE.whatsapp} className="font-medium text-white hover:underline">
+                {STORE.phone}
+              </a>
+            </p>
+          </div>
           <ul className="grid gap-1.5 text-sm text-blue-100">
             <li>✓ Bahan nyaman dan tahan lama</li>
             <li>✓ Bisa custom logo dan bordir</li>

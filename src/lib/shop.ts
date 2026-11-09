@@ -4,9 +4,10 @@ export const STORE = {
   name: "Adzkia Collection",
   tagline: "Seragam Satpam Lengkap & Berkualitas",
   // GANTI dengan data asli toko sebelum dipakai pelanggan.
-  whatsapp: "6281234567890",
+  whatsapp: "6285640668003",
+  phone: "0856-4066-8003",
   email: "halo@adzkia.example",
-  address: "Alamat toko belum diisi",
+  address: "", // isi alamat toko; kosong = tidak ditampilkan
   hours: "Senin - Sabtu: 08.00 - 17.00 WIB",
   bank: { name: "BCA", number: "123 456 7890", holder: "Adzkia Collection" },
 } as const;

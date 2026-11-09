@@ -9,7 +9,8 @@ export default function AboutPage() {
       </p>
       <section className="grid gap-2 rounded-lg border border-border bg-surface p-5 text-sm">
         <h2 className="font-semibold">Informasi kontak</h2>
-        <p>{STORE.address}</p>
+        {STORE.address && <p>{STORE.address}</p>}
+        <p>{STORE.phone}</p>
         <p>{STORE.email}</p>
         <p>{STORE.hours}</p>
         <a href={whatsappLink("Halo " + STORE.name + ", saya ingin bertanya.")} target="_blank" rel="noreferrer" className="font-medium text-accent hover:underline">
