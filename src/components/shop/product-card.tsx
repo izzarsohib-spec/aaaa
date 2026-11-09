@@ -6,8 +6,8 @@ import { formatRupiah } from "@/lib/calculations";
 import { useState } from "react";
 import { useCart } from "./cart";
 import { ProductArt } from "./product-art";
-import { EMPTY_SIZES, SizePicker, type Sizes } from "./size-picker";
-import { needsSize, sizeLabel } from "@/lib/shop";
+import { EMPTY_SIZES, SizeRows, groupSizes, resizeSizes, sizesComplete, type Sizes } from "./size-picker";
+import { needsSize } from "@/lib/shop";
 import { Button, Dialog, useToast } from "@/components/ui";
 
 export interface ShopProduct {
@@ -22,66 +22,75 @@ export interface ShopProduct {
   current_stock: number;
 }
 
-function AddForm({ p, initialQty, initialSizes, onClose }: { p: ShopProduct; initialQty: number; initialSizes: Sizes; onClose: () => void }) {
+function AddForm({ p, mode, onClose }: { p: ShopProduct; mode: "cart" | "buy"; onClose: () => void }) {
   const cart = useCart();
   const toast = useToast();
-  const [qty, setQty] = useState(initialQty);
-  const [sizes, setSizes] = useState<Sizes>(initialSizes);
+  const router = useRouter();
+  const [qty, setQtyState] = useState(1);
+  const [sizes, setSizes] = useState<Sizes[]>([EMPTY_SIZES]);
   const [tried, setTried] = useState(false);
   const sized = needsSize(p.category);
   const max = Math.max(1, p.current_stock);
+  const setQty = (n: number) => {
+    setQtyState(n);
+    setSizes((list) => resizeSizes(list, n));
+  };
+  const submit = () => {
+    if (sized) {
+      if (!sizesComplete(sizes)) {
+        setTried(true);
+        return;
+      }
+      for (const g of groupSizes(sizes)) cart.add(p.id, g.count, p.current_stock, g.label);
+    } else {
+      cart.add(p.id, qty, p.current_stock);
+    }
+    onClose();
+    if (mode === "buy") router.push("/keranjang");
+    else toast(qty + " x " + p.name + " masuk keranjang");
+  };
   return (
     <>
-        <div className="flex items-center gap-3">
-          <div className="w-20 shrink-0">
-            <ProductArt category={p.category} name={p.name} src={p.image_url} />
-          </div>
-          <div className="grid gap-1">
-            <p className="text-sm font-medium">{p.name}</p>
-            <p className="text-sm text-muted">{formatRupiah(p.selling_price)} / {p.unit} · Stok {p.current_stock}</p>
-          </div>
+      <div className="flex items-center gap-3">
+        <div className="w-20 shrink-0">
+          <ProductArt category={p.category} name={p.name} src={p.image_url} />
         </div>
-        {sized && <SizePicker value={sizes} onChange={setSizes} error={tried} />}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2" role="group" aria-label="Jumlah">
-            <Button variant="secondary" className="min-w-10 px-0" disabled={qty <= 1} onClick={() => setQty(qty - 1)} aria-label="Kurangi jumlah">
-              -
-            </Button>
-            <span className="w-10 text-center font-medium" aria-live="polite">{qty}</span>
-            <Button variant="secondary" className="min-w-10 px-0" disabled={qty >= max} onClick={() => setQty(qty + 1)} aria-label="Tambah jumlah">
-              +
-            </Button>
-          </div>
-          <p className="text-lg font-bold text-navy">{formatRupiah(p.selling_price * qty)}</p>
+        <div className="grid gap-1">
+          <p className="text-sm font-medium">{p.name}</p>
+          <p className="text-sm text-muted">{formatRupiah(p.selling_price)} / {p.unit} · Stok {p.current_stock}</p>
         </div>
-        <div className="grid gap-2 sm:grid-cols-2">
-          <Button variant="secondary" onClick={() => onClose()}>
-            Batal
+      </div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2" role="group" aria-label="Jumlah">
+          <span className="mr-1 text-sm font-medium">Jumlah</span>
+          <Button variant="secondary" className="min-w-10 px-0" disabled={qty <= 1} onClick={() => setQty(qty - 1)} aria-label="Kurangi jumlah">
+            -
           </Button>
-          <button
-            onClick={() => {
-              if (sized && (!sizes.shirt || !sizes.pants)) {
-                setTried(true);
-                return;
-              }
-              cart.add(p.id, qty, p.current_stock, sized ? sizeLabel(sizes.shirt, sizes.pants) : undefined);
-              toast(qty + " x " + p.name + " masuk keranjang");
-              onClose();
-            }}
-            className="min-h-10 rounded-md bg-gold px-4 text-sm font-bold text-navy hover:bg-gold-hover"
-          >
-            Masukkan keranjang
-          </button>
+          <span className="w-10 text-center font-medium" aria-live="polite">{qty}</span>
+          <Button variant="secondary" className="min-w-10 px-0" disabled={qty >= max} onClick={() => setQty(qty + 1)} aria-label="Tambah jumlah">
+            +
+          </Button>
         </div>
+        <p className="text-lg font-bold text-navy">{formatRupiah(p.selling_price * qty)}</p>
+      </div>
+      {sized && <SizeRows value={sizes} onChange={setSizes} error={tried} />}
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Button variant="secondary" onClick={onClose}>
+          Batal
+        </Button>
+        <button onClick={submit} className="min-h-10 rounded-md bg-gold px-4 text-sm font-bold text-navy hover:bg-gold-hover">
+          {mode === "buy" ? "Beli sekarang" : "Masukkan keranjang"}
+        </button>
+      </div>
     </>
   );
 }
 
-/** Popup pilih ukuran (seragam) dan jumlah sebelum masuk keranjang. */
-export function AddToCartDialog({ p, open, onClose, initialQty = 1, initialSizes = EMPTY_SIZES }: { p: ShopProduct; open: boolean; onClose: () => void; initialQty?: number; initialSizes?: Sizes }) {
+/** Popup pilih jumlah, lalu ukuran baju dan celana tiap seragam. */
+export function AddToCartDialog({ p, open, onClose, mode = "cart" }: { p: ShopProduct; open: boolean; onClose: () => void; mode?: "cart" | "buy" }) {
   return (
-    <Dialog open={open} title="Masukkan ke keranjang" onClose={onClose}>
-      <AddForm p={p} initialQty={initialQty} initialSizes={initialSizes} onClose={onClose} />
+    <Dialog open={open} title={mode === "buy" ? "Beli sekarang" : "Masukkan ke keranjang"} onClose={onClose}>
+      <AddForm p={p} mode={mode} onClose={onClose} />
     </Dialog>
   );
 }
