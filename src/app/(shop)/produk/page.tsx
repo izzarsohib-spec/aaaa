@@ -77,7 +77,7 @@ function Detail() {
                 toast(p.name + " masuk keranjang");
               }}
             >
-              Tambah ke keranjang
+              Masukkan keranjang
             </Button>
             <button
               disabled={out}
