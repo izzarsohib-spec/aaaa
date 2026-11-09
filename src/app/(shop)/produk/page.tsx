@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { Alert, Button, Skeleton } from "@/components/ui";
 import { ProductArt } from "@/components/shop/product-art";
-import { AddToCartDialog, type ShopProduct } from "@/components/shop/product-card";
+import { AddForm, AddToCartDialog, type ShopProduct } from "@/components/shop/product-card";
 import { formatRupiah } from "@/lib/calculations";
 import { api } from "@/lib/client";
 import { STORE, whatsappLink } from "@/lib/shop";
@@ -14,7 +14,7 @@ function Detail() {
   const id = useSearchParams().get("id");
   const [p, setP] = useState<ShopProduct | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [dialog, setDialog] = useState<"cart" | "buy" | null>(null);
+  const [dialog, setDialog] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -53,27 +53,22 @@ function Detail() {
             {out ? "Stok habis" : "Stok tersedia: " + p.current_stock + " " + p.unit} · SKU {p.sku}
           </p>
           {p.description && <p className="max-w-[60ch] text-sm leading-relaxed">{p.description}</p>}
-          <div className="grid gap-2 sm:grid-cols-2">
-            <Button
-              variant="secondary"
-              disabled={out}
-              onClick={() => {
-                setDialog("cart");
-              }}
-            >
-              Masukkan keranjang
-            </Button>
-            <button
-              disabled={out}
-              onClick={() => {
-                setDialog("buy");
-              }}
-              className="min-h-10 rounded-md bg-gold px-4 text-sm font-bold text-navy hover:bg-gold-hover disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Beli sekarang
-            </button>
-          </div>
-          <AddToCartDialog p={p} open={dialog !== null} mode={dialog ?? "cart"} onClose={() => setDialog(null)} />
+          {out ? (
+            <Button disabled>Stok habis</Button>
+          ) : (
+            <AddForm
+              p={p}
+              mode="buy"
+              inline
+              onClose={() => {}}
+              secondary={
+                <Button variant="secondary" onClick={() => setDialog(true)}>
+                  Masukkan keranjang
+                </Button>
+              }
+            />
+          )}
+          <AddToCartDialog p={p} open={dialog} onClose={() => setDialog(false)} />
           <a
             href={whatsappLink("Halo " + STORE.name + ", saya ingin bertanya tentang " + p.name + " (" + p.sku + ").")}
             target="_blank"

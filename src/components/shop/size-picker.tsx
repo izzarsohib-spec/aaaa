@@ -11,6 +11,7 @@ export function SizeBreakdown({
   onChange,
   total,
   error,
+  listClass = "h-44",
 }: {
   title: string;
   options: readonly string[];
@@ -18,6 +19,7 @@ export function SizeBreakdown({
   onChange: (rows: SizeRow[]) => void;
   total: number;
   error: boolean;
+  listClass?: string;
 }) {
   const sum = sumRows(rows);
   const ok = sum === total && rows.every((r) => r.size && r.qty > 0);
@@ -30,7 +32,7 @@ export function SizeBreakdown({
           {sum} / {total}
         </p>
       </div>
-      <ul className="grid h-44 content-start gap-2 overflow-y-auto pr-1">
+      <ul className={"grid content-start gap-2 overflow-y-auto pr-1 " + listClass}>
         {rows.map((r, i) => (
           <li key={i} className="grid grid-cols-[1fr_4.5rem_2rem] items-center gap-2">
             <Select aria-label={title + " baris " + (i + 1)} value={r.size} onChange={(e) => set(i, { size: e.target.value })} aria-invalid={error && !r.size}>

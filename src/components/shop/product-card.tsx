@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatRupiah } from "@/lib/calculations";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useCart } from "./cart";
 import { ProductArt } from "./product-art";
 import { SizeBreakdown } from "./size-picker";
@@ -22,7 +22,7 @@ export interface ShopProduct {
   current_stock: number;
 }
 
-function AddForm({ p, mode, onClose }: { p: ShopProduct; mode: "cart" | "buy"; onClose: () => void }) {
+export function AddForm({ p, mode, onClose, inline, secondary }: { p: ShopProduct; mode: "cart" | "buy"; onClose: () => void; inline?: boolean; secondary?: ReactNode }) {
   const cart = useCart();
   const toast = useToast();
   const router = useRouter();
@@ -57,6 +57,7 @@ function AddForm({ p, mode, onClose }: { p: ShopProduct; mode: "cart" | "buy"; o
   };
   return (
     <>
+      {!inline && (
       <div className="flex items-center gap-3">
         <div className="w-20 shrink-0">
           <ProductArt category={p.category} name={p.name} src={p.image_url} />
@@ -66,6 +67,7 @@ function AddForm({ p, mode, onClose }: { p: ShopProduct; mode: "cart" | "buy"; o
           <p className="text-sm text-muted">{formatRupiah(p.selling_price)} / {p.unit} · Stok {p.current_stock}</p>
         </div>
       </div>
+      )}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2" role="group" aria-label="Jumlah">
           <span className="mr-1 text-sm font-medium">Jumlah</span>
@@ -80,15 +82,17 @@ function AddForm({ p, mode, onClose }: { p: ShopProduct; mode: "cart" | "buy"; o
         <p className="text-lg font-bold text-navy">{formatRupiah(p.selling_price * qty)}</p>
       </div>
       {sized && (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <SizeBreakdown title="Ukuran baju" options={SHIRT_SIZES} rows={shirts} onChange={setShirts} total={qty} error={tried} />
-          <SizeBreakdown title="Ukuran celana" options={PANTS_SIZES} rows={pants} onChange={setPants} total={qty} error={tried} />
+        <div className={"grid gap-4 " + (inline ? "" : "sm:grid-cols-2")}>
+          <SizeBreakdown title="Ukuran baju" options={SHIRT_SIZES} rows={shirts} onChange={setShirts} total={qty} error={tried} listClass={inline ? "h-32" : "h-44"} />
+          <SizeBreakdown title="Ukuran celana" options={PANTS_SIZES} rows={pants} onChange={setPants} total={qty} error={tried} listClass={inline ? "h-32" : "h-44"} />
         </div>
       )}
       <div className="grid gap-2 sm:grid-cols-2">
-        <Button variant="secondary" onClick={onClose}>
-          Batal
-        </Button>
+        {secondary ?? (
+          <Button variant="secondary" onClick={onClose}>
+            Batal
+          </Button>
+        )}
         <button onClick={submit} className="min-h-10 rounded-md bg-gold px-4 text-sm font-bold text-navy hover:bg-gold-hover">
           {mode === "buy" ? "Beli sekarang" : "Masukkan keranjang"}
         </button>
