@@ -12,6 +12,7 @@ export function OrderRequestForm({
   children,
   buildLines,
   validate,
+  afterSent,
 }: {
   title: string;
   intro: string;
@@ -19,6 +20,7 @@ export function OrderRequestForm({
   children: ReactNode;
   buildLines: (get: (k: string) => string, f: FormData) => string[];
   validate?: (f: FormData) => string | null;
+  afterSent?: ReactNode;
 }) {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +59,7 @@ export function OrderRequestForm({
         {error && <p role="alert" className="text-sm text-danger">{error}</p>}
         <Button type="submit">Kirim permintaan via WhatsApp</Button>
         {sent && <p role="status" className="text-sm text-muted">WhatsApp terbuka di tab baru. Bila tidak terbuka, izinkan pop-up lalu kirim ulang.</p>}
+        {sent && afterSent}
       </form>
     </div>
   );
