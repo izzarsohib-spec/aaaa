@@ -17,7 +17,9 @@ interface DAdj { id: string; product_id: string; product_name: string; sku: stri
 interface DOrderItem { id: string; product_id: string; sku: string; name: string; quantity: number; unit_price: number; unit_cost: number; subtotal: number }
 type OrderStatus = "MENUNGGU_PEMBAYARAN" | "MENUNGGU_KONFIRMASI" | "DIPROSES" | "DIKIRIM" | "SELESAI" | "DIBATALKAN";
 interface DOrder { id: string; order_number: string; status: OrderStatus; customer_name: string; phone: string; address: string; city: string; postal_code: string | null; shipping_method: string; shipping_cost: number; subtotal: number; total_amount: number; notes: string | null; tracking_number: string | null; sale_id: string | null; created_at: string; items: DOrderItem[]; events: { status: OrderStatus; created_at: string }[] }
-export interface Store { users: DUser[]; products: DProduct[]; sales: DSale[]; adjustments: DAdj[]; orders: DOrder[]; session: { userId: string } | null }
+interface DReceipt { id: string; receipt_no: string; po_number: string | null; received_date: string; notes: string | null; items: { sku: string; name: string; quantity: number }[]; total_qty: number; created_at: string }
+interface DInvoice { id: string; invoice_number: string; issued_date: string; due_date: string; total_amount: number; status: "MENDATANG" | "LUNAS" | "DIBATALKAN"; notes: string | null; items: { description: string; quantity: number; unit_price: number }[]; paid_at: string | null }
+export interface Store { users: DUser[]; products: DProduct[]; sales: DSale[]; adjustments: DAdj[]; orders: DOrder[]; session: { userId: string } | null; pengadaan?: { receipts: DReceipt[]; invoices: DInvoice[] } }
 
 const KEY = "adzkia-demo-v2";
 const uid = () => crypto.randomUUID();
@@ -32,7 +34,7 @@ function seed(): Store {
       { id: uid(), email: "kasir@demo.id", name: "Kasir Demo", role: "STAFF", password: "demo1234" },
     ],
     products: [
-      p("SRG-001", "Seragam PDH Satpam", "pcs", 85000, 125000, 24, "Seragam Satpam", "Seragam PDH satpam lengan pendek bahan nyaman dan tahan lama, cocok untuk dinas harian."),
+      p("SRG-001", "Seragam PDH Satpam", "pcs", 85000, 125000, 24, "Seragam", "Seragam PDH satpam lengan pendek bahan nyaman dan tahan lama, cocok untuk dinas harian."),
       p("TPI-001", "Topi Pet Satpam", "pcs", 20000, 35000, 40, "Topi", "Topi baret satpam dengan lambang, ukuran dapat disesuaikan."),
       p("SPT-001", "Sepatu PDH Doof", "pasang", 140000, 210000, 3, "Sepatu", "Sepatu PDL kulit sintetis, sol anti slip, nyaman dipakai berjaga lama."),
       p("ATR-004", "Rompi Satpam", "pcs", 45000, 75000, 20, "Atribut", "Rompi security bahan mesh dengan reflektor, ringan dan nyaman dipakai berjaga.", (process.env.NEXT_PUBLIC_BASE_PATH ?? "") + "/produk/rompi-security.jpg"),
@@ -91,6 +93,7 @@ const toDto = (p: DProduct, role: Role) => {
 };
 
 const today = () => new Date().toISOString();
+const day0 = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
 
 export async function demoApi(path: string, method: string, body: unknown): Promise<unknown> {
   await new Promise((r) => setTimeout(r, 120));
@@ -124,7 +127,9 @@ export async function demoApi(path: string, method: string, body: unknown): Prom
     const term = (q.get("search") ?? "").toLowerCase();
     const list = st.products
       .filter((p) => !p.deleted && (!term || p.name.toLowerCase().includes(term) || p.sku.toLowerCase().includes(term)))
-      .sort((a, b2) => a.name.localeCompare(b2.name));
+      .sort(q.get("sortBy") === "current_stock"
+        ? (a, b2) => (q.get("sortOrder") === "desc" ? b2.current_stock - a.current_stock : a.current_stock - b2.current_stock)
+        : (a, b2) => a.name.localeCompare(b2.name));
     const r = page(list, q);
     return { ...r, items: r.items.map((p) => toDto(p, me.role)) };
   }
@@ -188,6 +193,54 @@ export async function demoApi(path: string, method: string, body: unknown): Prom
     st.adjustments.push({ id: uid(), product_id: p.id, product_name: p.name, sku: p.sku, user_id: me.id, user_name: me.name, type, quantity: qty, notes, created_at: today() });
     save(st);
     return { current_stock: p.current_stock };
+  }
+
+  /* ---------------- integrasi pengadaan (data contoh) */
+  if (pathname.startsWith("/api/pengadaan/")) {
+    onlyAdmin();
+    if (!st.pengadaan) {
+      const day = (offset: number) => new Date(Date.now() + 7 * 3600e3 + offset * 86400e3).toISOString().slice(0, 10);
+      st.pengadaan = {
+        receipts: [{
+          id: uid(), receipt_no: "BD-DEMO-001", po_number: "PO-530", received_date: day(-3), notes: null,
+          items: [{ sku: "SRG-001", name: "Seragam PDH Satpam", quantity: 40 }, { sku: "SPT-001", name: "Sepatu PDH Doof", quantity: 25 }],
+          total_qty: 65, created_at: new Date(Date.now() - 3 * 86400e3).toISOString(),
+        }],
+        invoices: [
+          { id: uid(), invoice_number: "TG-DEMO-001", issued_date: day(-20), due_date: day(-2), total_amount: 6_450_000, status: "MENDATANG", notes: "PO-512", items: [], paid_at: null },
+          { id: uid(), invoice_number: "TG-DEMO-002", issued_date: day(-3), due_date: day(12), total_amount: 14_800_000, status: "MENDATANG", notes: "PO-530", items: [], paid_at: null },
+          { id: uid(), invoice_number: "TG-DEMO-000", issued_date: day(-40), due_date: day(-10), total_amount: 3_200_000, status: "LUNAS", notes: null, items: [], paid_at: new Date().toISOString() },
+        ],
+      };
+      save(st);
+    }
+    const pg = st.pengadaan;
+    if (pathname === "/api/pengadaan/summary") {
+      const up = pg.invoices.filter((i) => i.status === "MENDATANG");
+      const t = day0();
+      return {
+        upcoming_count: up.length,
+        upcoming_total: up.reduce((a, i) => a + i.total_amount, 0),
+        nearest_due: up.map((i) => i.due_date).sort()[0] ?? null,
+        overdue_count: up.filter((i) => i.due_date < t).length,
+        receipts_30d_docs: pg.receipts.length,
+        receipts_30d_qty: pg.receipts.reduce((a, r) => a + r.total_qty, 0),
+      };
+    }
+    if (pathname === "/api/pengadaan/receipts") return page([...pg.receipts].sort((a, b2) => b2.created_at.localeCompare(a.created_at)), q);
+    if (pathname === "/api/pengadaan/invoices") {
+      const status = q.get("status");
+      return page(pg.invoices.filter((i) => !status || i.status === status).sort((a, b2) => a.due_date.localeCompare(b2.due_date)), q);
+    }
+    const im = pathname.match(/^\/api\/pengadaan\/invoices\/([^/]+)$/);
+    if (im && method === "PATCH") {
+      const inv = pg.invoices.find((i) => i.id === im[1]);
+      if (!inv) throw fail(404, "NOT_FOUND", "Tagihan tidak ditemukan");
+      inv.status = b.status === "LUNAS" ? "LUNAS" : "MENDATANG";
+      inv.paid_at = inv.status === "LUNAS" ? new Date().toISOString() : null;
+      save(st);
+      return inv;
+    }
   }
 
   /* ---------------- penjualan */

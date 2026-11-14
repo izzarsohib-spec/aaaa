@@ -11,12 +11,12 @@ export async function proxy(req: NextRequest) {
     url.searchParams.set("next", pathname + search);
     return NextResponse.redirect(url);
   }
-  if (pathname.startsWith("/users") && session.role !== "ADMIN") {
+  if ((pathname.startsWith("/users") || pathname.startsWith("/administrator")) && session.role !== "ADMIN") {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/orders/:path*", "/products/:path*", "/stock/:path*", "/sales/:path*", "/users/:path*"],
+  matcher: ["/dashboard/:path*", "/orders/:path*", "/products/:path*", "/stock/:path*", "/sales/:path*", "/users/:path*", "/administrator/:path*"],
 };

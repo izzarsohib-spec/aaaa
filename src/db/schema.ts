@@ -3,6 +3,7 @@ import {
   check,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -214,4 +215,45 @@ export const orderEvents = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("order_events_order_id_idx").on(t.orderId, t.createdAt)],
+);
+
+/* ------------------------------------------- integrasi pengadaan (Ray Mitra) */
+export const invoiceStatus = pgEnum("PengadaanInvoiceStatus", ["MENDATANG", "LUNAS", "DIBATALKAN"]);
+
+/** Barang datang yang dikirim sistem pengadaan; receipt_no unik supaya kiriman ulang tidak menambah stok dua kali. */
+export const pengadaanReceipts = pgTable(
+  "pengadaan_receipts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    receiptNo: text("receipt_no").notNull().unique(),
+    poNumber: text("po_number"),
+    receivedDate: text("received_date").notNull(),
+    notes: text("notes"),
+    items: jsonb("items").$type<{ sku: string; name: string; quantity: number }[]>().notNull(),
+    totalQty: integer("total_qty").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("pengadaan_receipts_created_idx").on(t.createdAt)],
+);
+
+/** Tagihan dari pengadaan; di-upsert berdasarkan invoice_number. */
+export const pengadaanInvoices = pgTable(
+  "pengadaan_invoices",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    invoiceNumber: text("invoice_number").notNull().unique(),
+    issuedDate: text("issued_date").notNull(),
+    dueDate: text("due_date").notNull(),
+    totalAmount: integer("total_amount").notNull(),
+    status: invoiceStatus("status").notNull().default("MENDATANG"),
+    notes: text("notes"),
+    items: jsonb("items").$type<{ description: string; quantity: number; unit_price: number }[]>().notNull().default([]),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index("pengadaan_invoices_status_due_idx").on(t.status, t.dueDate),
+    check("pengadaan_invoices_total_nonneg", sql`${t.totalAmount} >= 0`),
+  ],
 );

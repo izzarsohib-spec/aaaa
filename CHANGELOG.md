@@ -36,7 +36,7 @@
 - Daftar jenis sepatu dan aksesoris di `grosir/page.tsx` (SHOE_TYPES, ACCESSORIES) masih contoh; sesuaikan dengan katalog.
 
 ## 2026-11-04 - Grosir: jenis dari katalog
-- Seragam: ada pilihan "Jenis seragam" (nama produk kategori Seragam Satpam di katalog) sebelum ukuran baju dan celana; wajib dipilih. Jenis sepatu (kategori Sepatu) dan jenis aksesoris (kategori Topi + Atribut) juga diambil dari katalog; bila katalog gagal dimuat atau kosong, dipakai daftar bawaan.
+- Seragam: ada pilihan "Jenis seragam" (nama produk kategori Seragam di katalog) sebelum ukuran baju dan celana; wajib dipilih. Jenis sepatu (kategori Sepatu) dan jenis aksesoris (kategori Topi + Atribut) juga diambil dari katalog; bila katalog gagal dimuat atau kosong, dipakai daftar bawaan.
 
 ## 2026-11-04 - Grosir: tampilan pemesanan massal untuk customer
 - Halaman Grosir dirancang ulang jadi 4 langkah (`bulk-order-form.tsx`): 1) pemesan perusahaan/instansi atau perorangan + kontak, 2) pilih barang dari katalog per tab Seragam/Sepatu/Aksesoris dengan pencarian (boleh banyak jenis), 3) kartu per barang berisi kotak qty per ukuran (baju S-L7, celana 28-48, sepatu 37-45; aksesoris cukup jumlah), 4) tanggal dibutuhkan + catatan.
@@ -59,3 +59,10 @@
 - Banner beranda: kotak Seragam diganti dua kotak, Seragam Safari dan Seragam PDH SUS, memakai foto produk katalog yang namanya memuat "safari" dan "sus".
 
 - Beranda: kotak Topi dihapus dari banner (jadi empat gambar: Seragam Safari, Seragam PDH SUS, Sepatu, Rompi) dan baris gambar kategori di bawah banner dihapus.
+
+## 2026-11-14 - Integrasi pengadaan, langkah 1 (sisi toko)
+- Penerima kiriman dari sistem pengadaan: `POST /api/integrations/pengadaan`, ditandatangani HMAC-SHA256 atas `<timestamp>.<body>` (header `x-pengadaan-timestamp`, `x-pengadaan-signature`, toleransi 5 menit, rahasia `PENGADAAN_WEBHOOK_SECRET` min. 32 karakter; kosong = 503).
+- Dua jenis kiriman: `goods_received` (menambah stok per SKU, tercatat sebagai mutasi IN oleh akun sistem "Integrasi Pengadaan", idempoten per `receipt_no`, SKU tak dikenal menolak seluruh kiriman) dan `invoice` (upsert per `invoice_number`, tagihan yang sudah lunas tidak ditimpa).
+- Migrasi 0002: tabel `pengadaan_receipts` dan `pengadaan_invoices`.
+- Halaman `/administrator` (hanya Pemilik): ringkasan tagihan akan datang, jatuh tempo terdekat, barang datang 30 hari, stok paling sedikit, tab Tagihan (tandai lunas) dan Barang datang. Data demo ikut tersedia di mode demo.
+- Test: 5 unit test tanda tangan, 5 integration test (stok, idempotensi, SKU tak dikenal, upsert tagihan, lunas).

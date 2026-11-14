@@ -15,6 +15,13 @@
       "when": 1793097349032,
       "tag": "0001_cooing_unicorn",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794619783743,
+      "tag": "0002_pengadaan_integrasi",
+      "breakpoints": true
     }
   ]
 }
