@@ -92,7 +92,7 @@ export const pengadaanEventSchema = z.discriminatedUnion("type", [
     type: z.literal("invoice"),
     invoice_number: z.string().trim().min(1, "Nomor tagihan wajib diisi").max(60),
     issued_date: isoDate("Tanggal tagihan"),
-    due_date: isoDate("Jatuh tempo"),
+    due_date: isoDate("Jatuh tempo").nullish(),
     total_amount: rupiah("Total tagihan"),
     status: z.enum(["MENDATANG", "DIBATALKAN"]).default("MENDATANG"),
     notes: z.string().trim().max(500).optional(),

@@ -66,3 +66,5 @@
 - Migrasi 0002: tabel `pengadaan_receipts` dan `pengadaan_invoices`.
 - Halaman `/administrator` (hanya Pemilik): ringkasan tagihan akan datang, jatuh tempo terdekat, barang datang 30 hari, stok paling sedikit, tab Tagihan (tandai lunas) dan Barang datang. Data demo ikut tersedia di mode demo.
 - Test: 5 unit test tanda tangan, 5 integration test (stok, idempotensi, SKU tak dikenal, upsert tagihan, lunas).
+
+- Tagihan dari pengadaan boleh tanpa jatuh tempo (`due_date` opsional, migrasi 0003); tampil "Tanpa jatuh tempo", diurutkan paling akhir, tidak dihitung lewat tempo. Kolom daftar Barang datang dinamai "No. dokumen / PO" karena memuat nomor surat jalan atau faktur dari pengadaan. Kontrak diuji ujung ke ujung dengan pengirim pengadaan (inti `kirim-ke-toko`): stok bertambah, kiriman ulang tidak dobel, SKU tak dikenal ditolak, tagihan di-upsert dan bisa dibatalkan.

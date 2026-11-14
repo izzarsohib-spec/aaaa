@@ -42,7 +42,7 @@ interface Invoice {
   id: string;
   invoice_number: string;
   issued_date: string;
-  due_date: string;
+  due_date: string | null;
   total_amount: number;
   status: "MENDATANG" | "LUNAS" | "DIBATALKAN";
   notes: string | null;
@@ -74,6 +74,7 @@ function Metric({ label, value, note }: { label: string; value: string; note?: s
 function dueBadge(inv: Invoice, today: string) {
   if (inv.status === "LUNAS") return <Badge tone="good">Lunas</Badge>;
   if (inv.status === "DIBATALKAN") return <Badge>Dibatalkan</Badge>;
+  if (!inv.due_date) return <Badge>Tanpa jatuh tempo</Badge>;
   const d = dayDiff(inv.due_date, today);
   if (d < 0) return <Badge tone="bad">Lewat {-d} hari</Badge>;
   if (d <= 7) return <Badge tone="warn">{d === 0 ? "Jatuh tempo hari ini" : d + " hari lagi"}</Badge>;
@@ -238,7 +239,7 @@ function ReceiptsTab() {
           <tr>
             <Th>Tanggal diterima</Th>
             <Th>No. penerimaan</Th>
-            <Th>PO</Th>
+            <Th>No. dokumen / PO</Th>
             <Th>Barang</Th>
             <Th right>Total</Th>
           </tr>
@@ -358,7 +359,7 @@ function InvoicesTab({ onChanged }: { onChanged: () => void | Promise<void> }) {
                     {i.notes && <span className="block text-xs text-muted">{i.notes}</span>}
                   </Td>
                   <Td className="whitespace-nowrap">{fmtDay(i.issued_date)}</Td>
-                  <Td className="whitespace-nowrap">{fmtDay(i.due_date)}</Td>
+                  <Td className="whitespace-nowrap">{i.due_date ? fmtDay(i.due_date) : "-"}</Td>
                   <Td right>{formatRupiah(i.total_amount)}</Td>
                   <Td>{dueBadge(i, today)}</Td>
                   <Td right>

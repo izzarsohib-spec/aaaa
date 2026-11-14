@@ -106,6 +106,16 @@ describe.skipIf(!TEST_URL)("integrasi pengadaan", () => {
     expect(s).toMatchObject({ upcoming_count: 2, upcoming_total: 7_000_000, nearest_due: "2026-11-01", overdue_count: 1 });
   });
 
+  it("tagihan tanpa jatuh tempo diterima, tidak dihitung lewat tempo, dan tampil paling akhir", async () => {
+    await peng.pengadaanService.handle(inv({ invoice_number: "TG-N", due_date: null }));
+    await peng.pengadaanService.handle(inv({ invoice_number: "TG-D", due_date: "2026-12-31" }));
+    const list = await peng.pengadaanService.listInvoices({ limit: 10, offset: 0, status: "MENDATANG" });
+    expect(list.items.map((i) => i.invoice_number)).toEqual(["TG-D", "TG-N"]);
+    expect(list.items[1].due_date).toBeNull();
+    const s = await peng.pengadaanService.summary(new Date("2027-01-15T03:00:00Z"));
+    expect(s).toMatchObject({ upcoming_count: 2, nearest_due: "2026-12-31", overdue_count: 1 });
+  });
+
   it("tagihan yang sudah lunas tidak ditimpa kiriman susulan; DIBATALKAN tidak bisa dilunasi", async () => {
     const created = await peng.pengadaanService.handle(inv());
     const id = (created as { invoice: { id: string } }).invoice.id;

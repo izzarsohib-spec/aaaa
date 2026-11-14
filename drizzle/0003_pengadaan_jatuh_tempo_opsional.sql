@@ -1,0 +1,1 @@
+ALTER TABLE "pengadaan_invoices" ALTER COLUMN "due_date" DROP NOT NULL;

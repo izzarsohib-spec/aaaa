@@ -89,7 +89,7 @@ async function upsertInvoice(input: InvoiceEvent) {
   return runInTransaction(async (tx) => {
     const values = {
       issuedDate: input.issued_date,
-      dueDate: input.due_date,
+      dueDate: input.due_date ?? null,
       totalAmount: input.total_amount,
       notes: input.notes ?? null,
       items: input.items,

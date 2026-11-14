@@ -243,7 +243,7 @@ export const pengadaanInvoices = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     invoiceNumber: text("invoice_number").notNull().unique(),
     issuedDate: text("issued_date").notNull(),
-    dueDate: text("due_date").notNull(),
+    dueDate: text("due_date"),
     totalAmount: integer("total_amount").notNull(),
     status: invoiceStatus("status").notNull().default("MENDATANG"),
     notes: text("notes"),
