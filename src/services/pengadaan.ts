@@ -265,6 +265,29 @@ export const pengadaanService = {
     };
   },
 
+  /** Riwayat barang masuk (IN) dan keluar (OUT) titipan satu klien, terbaru di atas. */
+  async clientMoves(code: string, o: { limit: number; offset: number; direction?: "IN" | "OUT"; search?: string }) {
+    const client = await pengadaanRepo.findClientByCode(db(), code);
+    if (!client) throw notFound("Klien tidak ditemukan");
+    const { items, total } = await pengadaanRepo.listMoves(db(), { clientId: client.id, ...o });
+    return {
+      items: items.map((m) => ({
+        id: m.id,
+        direction: m.direction,
+        quantity: m.quantity,
+        doc_no: m.doc_no,
+        ref_no: m.ref_no,
+        doc_date: m.doc_date,
+        notes: m.notes,
+        sku: m.sku,
+        name: m.name,
+        unit: m.unit,
+        created_at: m.created_at,
+      })),
+      total,
+    };
+  },
+
   async summary(now = new Date()) {
     const today = toJakartaDate(now);
     const since = new Date(now.getTime() - 30 * 24 * 3600 * 1000);

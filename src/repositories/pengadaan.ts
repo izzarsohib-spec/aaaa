@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import { schema, type Executor, type Tx } from "@/db";
 
 const { users, products, pengadaanReceipts, pengadaanIssues, pengadaanInvoices, titipanClients, titipanMoves } = schema;
@@ -143,6 +143,56 @@ export const pengadaanRepo = {
       .where(eq(titipanMoves.clientId, clientId))
       .groupBy(products.id, products.sku, products.name, products.category, products.unit)
       .orderBy(asc(products.name)),
+  /**
+   * Riwayat barang masuk dan keluar titipan satu klien, terbaru di atas. ref_no = nomor dokumen asal
+   * (PO/nomor dokumen untuk masuk, nomor surat jalan untuk keluar). Pencarian: nama, SKU, atau nomor kiriman.
+   */
+  listMoves: async (
+    ex: Executor,
+    o: { clientId: string; direction?: "IN" | "OUT"; search?: string; limit: number; offset: number },
+  ) => {
+    const term = o.search?.trim().replace(/[\\%_]/g, (c) => "\\" + c);
+    const where = and(
+      eq(titipanMoves.clientId, o.clientId),
+      o.direction ? eq(titipanMoves.direction, o.direction) : undefined,
+      term
+        ? or(
+            ilike(products.name, "%" + term + "%"),
+            ilike(products.sku, "%" + term + "%"),
+            ilike(titipanMoves.docNo, "%" + term + "%"),
+          )
+        : undefined,
+    );
+    const joined = ex
+      .select({
+        id: titipanMoves.id,
+        direction: titipanMoves.direction,
+        quantity: titipanMoves.quantity,
+        doc_no: titipanMoves.docNo,
+        doc_date: titipanMoves.docDate,
+        notes: titipanMoves.notes,
+        created_at: titipanMoves.createdAt,
+        sku: products.sku,
+        name: products.name,
+        unit: products.unit,
+        ref_no: sql<string | null>`coalesce(${pengadaanReceipts.poNumber}, ${pengadaanIssues.poNumber})`,
+      })
+      .from(titipanMoves)
+      .innerJoin(products, eq(products.id, titipanMoves.productId))
+      .leftJoin(pengadaanReceipts, and(eq(titipanMoves.direction, "IN"), eq(pengadaanReceipts.receiptNo, titipanMoves.docNo)))
+      .leftJoin(pengadaanIssues, and(eq(titipanMoves.direction, "OUT"), eq(pengadaanIssues.issueNo, titipanMoves.docNo)))
+      .where(where);
+    const [{ total }] = await ex
+      .select({ total: count() })
+      .from(titipanMoves)
+      .innerJoin(products, eq(products.id, titipanMoves.productId))
+      .where(where);
+    const items = await joined
+      .orderBy(desc(titipanMoves.docDate), desc(titipanMoves.createdAt), desc(titipanMoves.id))
+      .limit(o.limit)
+      .offset(o.offset);
+    return { items, total };
+  },
   /** Ringkasan stok titipan per klien (jumlah jenis barang, total masuk/keluar). */
   stockTotalsByClient: (ex: Executor) =>
     ex

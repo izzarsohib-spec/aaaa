@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { TitipanMoves } from "@/components/titipan-moves";
 import { TitipanTabs } from "@/components/titipan-tabs";
 import { Alert, Badge, Button, Card, Empty, Input, Skeleton, TableSkeleton, TableWrap, Td, Th } from "@/components/ui";
 import { api } from "@/lib/client";
@@ -170,6 +171,8 @@ export default function TitipanStokPage() {
           </tbody>
         </TableWrap>
       )}
+
+      <TitipanMoves code={code} />
     </div>
   );
 }

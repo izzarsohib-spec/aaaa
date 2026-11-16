@@ -75,3 +75,8 @@
 - Skema (migrasi 0004, aman untuk tabel berisi): `titipan_clients` (diisi RMP), `titipan_moves` (buku besar IN/OUT), `pengadaan_issues`, kolom `client_id` pada `pengadaan_receipts` dan `pengadaan_invoices` (baris lama otomatis ke RMP).
 - API: `GET /api/titipan/clients`, `GET /api/titipan/[code]/stock`, `GET /api/pengadaan/invoices?client=`.
 - Uji: 11 uji integrasi pengadaan (titipan, keluar, klien, tagihan per klien) dan seluruh suite (63 uji) lulus.
+
+## 2026-11-16 - Titipan Seragam: riwayat barang masuk dan keluar
+- Halaman **Stok** klien titipan kini punya bagian **Riwayat barang masuk dan keluar** di bawah tabel stok: terbaru di atas, penyaring Semua / Masuk / Keluar, pencarian (barang, SKU, atau nomor kiriman), halaman 15 baris. Tiap baris menampilkan tanggal, jenis, barang, nomor kiriman (BD-/BK-) beserta nomor dokumen asal (PO atau surat jalan), jumlah (+/-), dan catatan.
+- API baru `GET /api/titipan/[code]/moves?direction=IN|OUT&search=&page=&limit=` (ADMIN).
+- Uji: 1 uji integrasi baru (urutan, arah, pencarian, paging, pemisahan antar klien); 12 uji pengadaan lulus.

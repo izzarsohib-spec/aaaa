@@ -160,6 +160,32 @@ describe.skipIf(!TEST_URL)("integrasi pengadaan (titipan seragam)", () => {
     expect(onlyAbc.items.map((i) => i.invoice_number)).toEqual(["TG-A"]);
   });
 
+  it("riwayat barang masuk dan keluar: terbaru di atas, bisa disaring arah dan dicari, membawa nomor dokumen, terpisah per klien", async () => {
+    await peng.pengadaanService.handle(goods()); // BD-1, PO-530, 2026-11-10: SRG-001 x7, SPT-001 x3
+    await peng.pengadaanService.handle(issued({ po_number: "SJ/2026/11/0001" })); // BK-1, 2026-11-12: SRG-001 x4
+    await peng.pengadaanService.handle(goods({ client: "ABC", receipt_no: "BD-2", items: [{ sku: "SPT-001", quantity: 9 }] }));
+
+    const all = await peng.pengadaanService.clientMoves("RMP", { limit: 10, offset: 0 });
+    expect(all.total).toBe(3);
+    expect(all.items[0]).toMatchObject({ direction: "OUT", doc_no: "BK-1", ref_no: "SJ/2026/11/0001", sku: "SRG-001", quantity: 4 });
+    expect(all.items.map((m) => m.doc_date)).toEqual(["2026-11-12", "2026-11-10", "2026-11-10"]);
+
+    const masuk = await peng.pengadaanService.clientMoves("RMP", { limit: 10, offset: 0, direction: "IN" });
+    expect(masuk.total).toBe(2);
+    expect(masuk.items.every((m) => m.direction === "IN" && m.ref_no === "PO-530")).toBe(true);
+
+    expect((await peng.pengadaanService.clientMoves("RMP", { limit: 10, offset: 0, search: "sepatu" })).total).toBe(1);
+    expect((await peng.pengadaanService.clientMoves("RMP", { limit: 10, offset: 0, search: "BK-1" })).total).toBe(1);
+    expect((await peng.pengadaanService.clientMoves("RMP", { limit: 10, offset: 0, search: "%" })).total).toBe(0);
+
+    const page2 = await peng.pengadaanService.clientMoves("RMP", { limit: 2, offset: 2 });
+    expect(page2.items).toHaveLength(1);
+    expect(page2.total).toBe(3);
+
+    expect((await peng.pengadaanService.clientMoves("ABC", { limit: 10, offset: 0 })).items.map((m) => m.doc_no)).toEqual(["BD-2"]);
+    await expect(peng.pengadaanService.clientMoves("NOPE", { limit: 10, offset: 0 })).rejects.toMatchObject({ status: 404 });
+  });
+
   const inv = (over: Record<string, unknown> = {}) =>
     ({
       type: "invoice",
