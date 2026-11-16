@@ -37,6 +37,8 @@ interface ClientRow {
   unpaid_count: number;
   unpaid_total: number;
   overdue_count: number;
+  paid_count: number;
+  paid_total: number;
 }
 
 const fmtDay = (s: string) =>
@@ -53,9 +55,7 @@ function Metric({ label, value, note }: { label: string; value: string; note?: s
   );
 }
 
-function statusBadge(inv: Invoice, today: string) {
-  if (inv.status === "LUNAS") return <Badge tone="good">Lunas</Badge>;
-  if (inv.status === "DIBATALKAN") return <Badge>Dibatalkan</Badge>;
+function dueBadge(inv: Invoice, today: string) {
   if (!inv.due_date) return <Badge>Tanpa jatuh tempo</Badge>;
   const d = dayDiff(inv.due_date, today);
   if (d < 0) return <Badge tone="bad">Lewat {-d} hari</Badge>;
@@ -63,17 +63,30 @@ function statusBadge(inv: Invoice, today: string) {
   return <Badge>{d} hari lagi</Badge>;
 }
 
+function InvoiceNo({ inv }: { inv: Invoice }) {
+  return (
+    <>
+      <span className="font-mono text-xs">{inv.invoice_number}</span>
+      {inv.notes && <span className="block text-xs text-muted">{inv.notes}</span>}
+    </>
+  );
+}
+
 export default function TitipanTagihanPage() {
   const { code } = useParams<{ code: string }>();
   const toast = useToast();
+  const today = toJakartaDate(new Date());
+
   const [client, setClient] = useState<ClientRow | null>(null);
-  const [data, setData] = useState<Paged<Invoice> | null>(null);
+  const [open, setOpen] = useState<Paged<Invoice> | null>(null);
+  const [paid, setPaid] = useState<Paged<Invoice> | null>(null);
+  const [openPage, setOpenPage] = useState(1);
+  const [paidPage, setPaidPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [showPaid, setShowPaid] = useState(false);
   const [target, setTarget] = useState<Invoice | null>(null);
   const [saving, setSaving] = useState(false);
-  const today = toJakartaDate(new Date());
+
+  const base = "/api/pengadaan/invoices?limit=10&client=" + encodeURIComponent(code);
 
   const loadClient = useCallback(async () => {
     try {
@@ -84,23 +97,29 @@ export default function TitipanTagihanPage() {
     }
   }, [code]);
 
-  const load = useCallback(async () => {
+  const loadOpen = useCallback(async () => {
     setError(null);
     try {
-      const status = showPaid ? "LUNAS" : "MENDATANG";
-      setData(
-        await api<Paged<Invoice>>(
-          "/api/pengadaan/invoices?limit=10&client=" + encodeURIComponent(code) + "&status=" + status + "&page=" + page,
-        ),
-      );
+      setOpen(await api<Paged<Invoice>>(base + "&status=MENDATANG&page=" + openPage));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Gagal memuat tagihan");
     }
-  }, [code, page, showPaid]);
+  }, [base, openPage]);
+
+  const loadPaid = useCallback(async () => {
+    try {
+      setPaid(await api<Paged<Invoice>>(base + "&status=LUNAS&page=" + paidPage));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Gagal memuat riwayat tagihan lunas");
+    }
+  }, [base, paidPage]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    void loadOpen();
+  }, [loadOpen]);
+  useEffect(() => {
+    void loadPaid();
+  }, [loadPaid]);
   useEffect(() => {
     void loadClient();
   }, [loadClient]);
@@ -112,7 +131,7 @@ export default function TitipanTagihanPage() {
       await api("/api/pengadaan/invoices/" + target.id, { method: "PATCH", body: { status: "LUNAS" } });
       toast("Tagihan ditandai lunas");
       setTarget(null);
-      await Promise.all([load(), loadClient()]);
+      await Promise.all([loadOpen(), loadPaid(), loadClient()]);
     } catch (e) {
       toast(e instanceof Error ? e.message : "Gagal memperbarui tagihan", "err");
     } finally {
@@ -124,7 +143,7 @@ export default function TitipanTagihanPage() {
     <div className="grid gap-6">
       <TitipanTabs code={code} name={client?.name ?? code} active="tagihan" />
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-3">
         {client ? (
           <>
             <Metric label="Belum dibayar" value={formatRupiah(client.unpaid_total)} note={client.unpaid_count + " tagihan"} />
@@ -133,50 +152,36 @@ export default function TitipanTagihanPage() {
               value={String(client.overdue_count)}
               note={client.overdue_count ? "Perlu ditagih" : "Tidak ada"}
             />
+            <Metric label="Sudah lunas" value={formatRupiah(client.paid_total)} note={client.paid_count + " tagihan"} />
           </>
         ) : (
-          [0, 1].map((i) => <Skeleton key={i} className="h-24" />)
+          [0, 1, 2].map((i) => <Skeleton key={i} className="h-24" />)
         )}
       </div>
 
-      <div className="grid gap-3">
-        <div className="flex gap-2">
-          <Button
-            variant={showPaid ? "secondary" : "primary"}
-            onClick={() => {
-              setShowPaid(false);
-              setPage(1);
-            }}
-          >
-            Belum dibayar
-          </Button>
-          <Button
-            variant={showPaid ? "primary" : "secondary"}
-            onClick={() => {
-              setShowPaid(true);
-              setPage(1);
-            }}
-          >
-            Sudah lunas
-          </Button>
-        </div>
-
-        {error ? (
-          <div className="grid gap-3">
-            <Alert>{error}</Alert>
-            <div>
-              <Button variant="secondary" onClick={() => void load()}>
-                Coba lagi
-              </Button>
-            </div>
+      {error && (
+        <div className="grid gap-3">
+          <Alert>{error}</Alert>
+          <div>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                void loadOpen();
+                void loadPaid();
+              }}
+            >
+              Coba lagi
+            </Button>
           </div>
-        ) : !data ? (
-          <TableSkeleton cols={5} />
-        ) : data.items.length === 0 ? (
-          <Empty
-            title={showPaid ? "Belum ada tagihan lunas" : "Tidak ada tagihan menunggu"}
-            hint="Tagihan muncul di sini setelah dibuat di bagian Tagihan sistem pengadaan."
-          />
+        </div>
+      )}
+
+      <section className="grid gap-3" aria-label="Tagihan belum dibayar">
+        <h2 className="text-lg font-semibold tracking-tight">Belum dibayar</h2>
+        {!open ? (
+          !error && <TableSkeleton cols={5} />
+        ) : open.items.length === 0 ? (
+          <Empty title="Tidak ada tagihan menunggu" hint="Tagihan muncul di sini setelah dibuat di bagian Tagihan sistem pengadaan." />
         ) : (
           <>
             <TableWrap>
@@ -191,38 +196,79 @@ export default function TitipanTagihanPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.items.map((i) => (
+                {open.items.map((i) => (
                   <tr key={i.id}>
                     <Td>
-                      <span className="font-mono text-xs">{i.invoice_number}</span>
-                      {i.notes && <span className="block text-xs text-muted">{i.notes}</span>}
+                      <InvoiceNo inv={i} />
                     </Td>
                     <Td className="whitespace-nowrap">{fmtDay(i.issued_date)}</Td>
                     <Td className="whitespace-nowrap">{i.due_date ? fmtDay(i.due_date) : "-"}</Td>
                     <Td right>{formatRupiah(i.total_amount)}</Td>
-                    <Td>{statusBadge(i, today)}</Td>
+                    <Td>{dueBadge(i, today)}</Td>
                     <Td right>
-                      {i.status === "MENDATANG" && (
-                        <Button variant="secondary" onClick={() => setTarget(i)}>
-                          Tandai lunas
-                        </Button>
-                      )}
+                      <Button variant="secondary" onClick={() => setTarget(i)}>
+                        Tandai lunas
+                      </Button>
                     </Td>
                   </tr>
                 ))}
               </tbody>
             </TableWrap>
-            <Pagination page={data.page} totalPages={data.totalPages} total={data.total} onPage={setPage} />
+            <Pagination page={open.page} totalPages={open.totalPages} total={open.total} onPage={setOpenPage} />
           </>
         )}
-      </div>
+      </section>
+
+      <section className="grid gap-3" aria-label="Riwayat tagihan lunas">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Riwayat tagihan lunas</h2>
+          <p className="text-sm text-muted">Tagihan yang sudah ditandai lunas, yang terbaru dibayar di atas.</p>
+        </div>
+        {!paid ? (
+          !error && <TableSkeleton cols={5} />
+        ) : paid.items.length === 0 ? (
+          <Empty title="Belum ada tagihan lunas" hint="Tagihan yang ditandai lunas akan tercatat di sini beserta tanggal dibayarnya." />
+        ) : (
+          <>
+            <TableWrap>
+              <thead>
+                <tr>
+                  <Th>No. tagihan</Th>
+                  <Th>Tanggal</Th>
+                  <Th>Jatuh tempo</Th>
+                  <Th right>Total</Th>
+                  <Th>Dibayar pada</Th>
+                  <Th>Status</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {paid.items.map((i) => (
+                  <tr key={i.id}>
+                    <Td>
+                      <InvoiceNo inv={i} />
+                    </Td>
+                    <Td className="whitespace-nowrap">{fmtDay(i.issued_date)}</Td>
+                    <Td className="whitespace-nowrap">{i.due_date ? fmtDay(i.due_date) : "-"}</Td>
+                    <Td right>{formatRupiah(i.total_amount)}</Td>
+                    <Td className="whitespace-nowrap">{i.paid_at ? fmtDay(toJakartaDate(new Date(i.paid_at))) : "-"}</Td>
+                    <Td>
+                      <Badge tone="good">Lunas</Badge>
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </TableWrap>
+            <Pagination page={paid.page} totalPages={paid.totalPages} total={paid.total} onPage={setPaidPage} />
+          </>
+        )}
+      </section>
 
       <ConfirmDialog
         open={target !== null}
         title="Tandai tagihan lunas?"
         message={
           target
-            ? "Tagihan " + target.invoice_number + " sebesar " + formatRupiah(target.total_amount) + " akan dipindah ke daftar lunas."
+            ? "Tagihan " + target.invoice_number + " sebesar " + formatRupiah(target.total_amount) + " akan dipindah ke riwayat tagihan lunas."
             : ""
         }
         confirmLabel="Ya, lunas"

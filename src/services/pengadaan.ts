@@ -220,16 +220,19 @@ export const pengadaanService = {
   /** Daftar klien titipan beserta ringkasan stok dan tagihan belum dibayar. */
   async listClients(now = new Date()) {
     const today = toJakartaDate(now);
-    const [clients, stock, bills] = await Promise.all([
+    const [clients, stock, bills, paid] = await Promise.all([
       pengadaanRepo.listClients(db()),
       pengadaanRepo.stockTotalsByClient(db()),
       pengadaanRepo.upcomingByClient(db(), today),
+      pengadaanRepo.paidByClient(db()),
     ]);
     const s = new Map(stock.map((x) => [x.client_id, x]));
     const b = new Map(bills.map((x) => [x.client_id, x]));
+    const p = new Map(paid.map((x) => [x.client_id, x]));
     return clients.map((c) => {
       const st = s.get(c.id);
       const bi = b.get(c.id);
+      const pa = p.get(c.id);
       return {
         code: c.code,
         name: c.name,
@@ -240,6 +243,8 @@ export const pengadaanService = {
         unpaid_count: bi?.count ?? 0,
         unpaid_total: Number(bi?.total ?? 0),
         overdue_count: bi?.overdue ?? 0,
+        paid_count: pa?.count ?? 0,
+        paid_total: Number(pa?.total ?? 0),
       };
     });
   },

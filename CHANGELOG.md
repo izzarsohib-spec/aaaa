@@ -80,3 +80,8 @@
 - Halaman **Stok** klien titipan kini punya bagian **Riwayat barang masuk dan keluar** di bawah tabel stok: terbaru di atas, penyaring Semua / Masuk / Keluar, pencarian (barang, SKU, atau nomor kiriman), halaman 15 baris. Tiap baris menampilkan tanggal, jenis, barang, nomor kiriman (BD-/BK-) beserta nomor dokumen asal (PO atau surat jalan), jumlah (+/-), dan catatan.
 - API baru `GET /api/titipan/[code]/moves?direction=IN|OUT&search=&page=&limit=` (ADMIN).
 - Uji: 1 uji integrasi baru (urutan, arah, pencarian, paging, pemisahan antar klien); 12 uji pengadaan lulus.
+
+## 2026-11-16 - Titipan Seragam: riwayat tagihan lunas
+- Halaman **Tagihan** klien titipan kini selalu menampilkan dua bagian: **Belum dibayar** (dengan tombol Tandai lunas) dan **Riwayat tagihan lunas** (tanggal tagihan, jatuh tempo, total, dan **tanggal dibayar**, yang terbaru dibayar di atas, dengan paging sendiri). Tombol pengalih "Belum dibayar / Sudah lunas" dihapus.
+- Kartu ringkasan bertambah satu: **Sudah lunas** (total rupiah dan jumlah tagihan). API `GET /api/titipan/clients` kini membawa `paid_count` dan `paid_total`; daftar tagihan berstatus LUNAS diurutkan menurut tanggal dibayar.
+- Uji: 1 uji integrasi baru (urutan riwayat lunas, total lunas per klien, tagihan klien lain tidak ikut); 13 uji pengadaan lulus.

@@ -220,6 +220,25 @@ describe.skipIf(!TEST_URL)("integrasi pengadaan (titipan seragam)", () => {
     expect(s).toMatchObject({ upcoming_count: 2, nearest_due: "2026-12-31", overdue_count: 1 });
   });
 
+  it("riwayat tagihan lunas: yang terbaru dibayar di atas, total lunas per klien, tagihan klien lain tidak ikut", async () => {
+    const id = async (r: unknown) => (r as { invoice: { id: string } }).invoice.id;
+    const a = await id(await peng.pengadaanService.handle(inv({ invoice_number: "TG-A", total_amount: 1_000_000 })));
+    const b = await id(await peng.pengadaanService.handle(inv({ invoice_number: "TG-B", total_amount: 2_500_000 })));
+    await peng.pengadaanService.handle(inv({ invoice_number: "TG-C", total_amount: 700_000 })); // tetap belum dibayar
+    const other = await id(await peng.pengadaanService.handle(inv({ invoice_number: "TG-X", client: "ABC", total_amount: 9_000_000 })));
+    await peng.pengadaanService.setInvoiceStatus(a, { status: "LUNAS" });
+    await new Promise((r) => setTimeout(r, 20));
+    await peng.pengadaanService.setInvoiceStatus(b, { status: "LUNAS" });
+    await peng.pengadaanService.setInvoiceStatus(other, { status: "LUNAS" });
+
+    const lunas = await peng.pengadaanService.listInvoices({ limit: 10, offset: 0, status: "LUNAS", client: "RMP" });
+    expect(lunas.items.map((i) => i.invoice_number)).toEqual(["TG-B", "TG-A"]);
+    expect(lunas.items.every((i) => i.paid_at !== null)).toBe(true);
+
+    const rmp = (await peng.pengadaanService.listClients(new Date("2026-11-14T03:00:00Z"))).find((c) => c.code === "RMP")!;
+    expect(rmp).toMatchObject({ paid_count: 2, paid_total: 3_500_000, unpaid_count: 1, unpaid_total: 700_000 });
+  });
+
   it("tagihan yang sudah lunas tidak ditimpa kiriman susulan; DIBATALKAN tidak bisa dilunasi", async () => {
     const created = await peng.pengadaanService.handle(inv());
     const id = (created as { invoice: { id: string } }).invoice.id;

@@ -90,7 +90,12 @@ export const pengadaanRepo = {
       .select()
       .from(pengadaanInvoices)
       .where(where)
-      .orderBy(asc(pengadaanInvoices.dueDate), desc(pengadaanInvoices.createdAt))
+      // belum dibayar: yang paling dekat jatuh tempo dulu; lunas: yang terbaru dibayar di atas
+      .orderBy(
+        ...(o.status === "LUNAS"
+          ? [desc(pengadaanInvoices.paidAt), desc(pengadaanInvoices.createdAt)]
+          : [asc(pengadaanInvoices.dueDate), desc(pengadaanInvoices.createdAt)]),
+      )
       .limit(o.limit)
       .offset(o.offset);
     return { items, total };
@@ -204,6 +209,17 @@ export const pengadaanRepo = {
       })
       .from(titipanMoves)
       .groupBy(titipanMoves.clientId),
+  /** Tagihan yang sudah lunas per klien (jumlah dan total). */
+  paidByClient: (ex: Executor) =>
+    ex
+      .select({
+        client_id: pengadaanInvoices.clientId,
+        count: count(),
+        total: sql<number>`coalesce(sum(${pengadaanInvoices.totalAmount}), 0)::bigint`,
+      })
+      .from(pengadaanInvoices)
+      .where(eq(pengadaanInvoices.status, "LUNAS"))
+      .groupBy(pengadaanInvoices.clientId),
   /** Tagihan belum dibayar per klien. */
   upcomingByClient: (ex: Executor, today: string) =>
     ex
