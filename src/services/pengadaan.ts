@@ -153,6 +153,8 @@ async function upsertInvoice(input: InvoiceEvent) {
       notes: input.notes ?? null,
       items: input.items,
     };
+    // Kiriman LUNAS dari pengadaan: tanggal bayar = paid_date (WIB), bila kosong sekarang.
+    const paidAt = input.status === "LUNAS" ? (input.paid_date ? new Date(input.paid_date + "T00:00:00+07:00") : new Date()) : null;
     const existing = await pengadaanRepo.lockInvoiceByNumber(tx, input.invoice_number);
     if (!existing) {
       const client = await requireClient(tx, input.client);
@@ -160,13 +162,14 @@ async function upsertInvoice(input: InvoiceEvent) {
         invoiceNumber: input.invoice_number,
         clientId: client.id,
         status: input.status,
+        paidAt,
         ...values,
       });
       return { duplicate: false, invoice: toInvoiceDto(row) };
     }
-    // Tagihan yang sudah ditandai lunas oleh Mas Wahyu tidak boleh ditimpa kiriman susulan.
+    // Tagihan yang sudah lunas (ditandai Mas Wahyu atau dari pengadaan) tidak boleh ditimpa kiriman susulan.
     if (existing.status === "LUNAS") return { duplicate: true, invoice: toInvoiceDto(existing) };
-    const row = await pengadaanRepo.updateInvoice(tx, existing.id, { status: input.status, ...values });
+    const row = await pengadaanRepo.updateInvoice(tx, existing.id, { status: input.status, paidAt, ...values });
     return { duplicate: false, invoice: toInvoiceDto(row) };
   });
 }

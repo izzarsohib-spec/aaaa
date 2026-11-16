@@ -85,3 +85,7 @@
 - Halaman **Tagihan** klien titipan kini selalu menampilkan dua bagian: **Belum dibayar** (dengan tombol Tandai lunas) dan **Riwayat tagihan lunas** (tanggal tagihan, jatuh tempo, total, dan **tanggal dibayar**, yang terbaru dibayar di atas, dengan paging sendiri). Tombol pengalih "Belum dibayar / Sudah lunas" dihapus.
 - Kartu ringkasan bertambah satu: **Sudah lunas** (total rupiah dan jumlah tagihan). API `GET /api/titipan/clients` kini membawa `paid_count` dan `paid_total`; daftar tagihan berstatus LUNAS diurutkan menurut tanggal dibayar.
 - Uji: 1 uji integrasi baru (urutan riwayat lunas, total lunas per klien, tagihan klien lain tidak ikut); 13 uji pengadaan lulus.
+
+## 2026-11-16 - Status lunas otomatis dari pengadaan
+- Kiriman `invoice` dari pengadaan kini boleh berstatus **`LUNAS`** dengan `paid_date` opsional (tanggal pembayaran terakhir, WIB; bila kosong memakai waktu terima). Tagihan yang masih menunggu berubah jadi lunas lengkap dengan tanggal bayar, dan tagihan baru yang sudah lunas langsung masuk sebagai lunas. Tagihan yang sudah lunas (ditandai Mas Wahyu atau dari pengadaan) tetap tidak ditimpa kiriman susulan.
+- Uji: 1 uji integrasi baru; 14 uji pengadaan dan 66 uji seluruhnya lulus.

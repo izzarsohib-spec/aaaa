@@ -110,7 +110,9 @@ export const pengadaanEventSchema = z.discriminatedUnion("type", [
     issued_date: isoDate("Tanggal tagihan"),
     due_date: isoDate("Jatuh tempo").nullish(),
     total_amount: rupiah("Total tagihan"),
-    status: z.enum(["MENDATANG", "DIBATALKAN"]).default("MENDATANG"),
+    // LUNAS = pembayaran sudah dicatat di pengadaan; paid_date = tanggal pembayaran terakhir (opsional, bawaan hari diterima)
+    status: z.enum(["MENDATANG", "DIBATALKAN", "LUNAS"]).default("MENDATANG"),
+    paid_date: isoDate("Tanggal bayar").nullish(),
     notes: z.string().trim().max(500).optional(),
     items: z
       .array(

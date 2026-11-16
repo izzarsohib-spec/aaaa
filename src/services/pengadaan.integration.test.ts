@@ -220,6 +220,26 @@ describe.skipIf(!TEST_URL)("integrasi pengadaan (titipan seragam)", () => {
     expect(s).toMatchObject({ upcoming_count: 2, nearest_due: "2026-12-31", overdue_count: 1 });
   });
 
+  it("kiriman tagihan berstatus LUNAS dari pengadaan: tagihan baru langsung lunas, yang menunggu berubah jadi lunas dengan tanggal bayar", async () => {
+    const created = await peng.pengadaanService.handle(inv({ invoice_number: "TG-L1" })); // menunggu
+    expect((created as { invoice: { status: string } }).invoice.status).toBe("MENDATANG");
+    const upd = await peng.pengadaanService.handle(inv({ invoice_number: "TG-L1", status: "LUNAS", paid_date: "2026-11-12" }));
+    expect(upd.duplicate).toBe(false);
+    const row = (await peng.pengadaanService.listInvoices({ limit: 10, offset: 0, status: "LUNAS" })).items.find((i) => i.invoice_number === "TG-L1")!;
+    expect(row.status).toBe("LUNAS");
+    expect(new Date(row.paid_at as unknown as string).toISOString()).toBe("2026-11-11T17:00:00.000Z"); // 12 Nov 00:00 WIB
+
+    // langsung lunas pada kiriman pertama, tanggal bayar bawaan = sekarang
+    await peng.pengadaanService.handle(inv({ invoice_number: "TG-L2", status: "LUNAS" }));
+    const l2 = (await peng.pengadaanService.listInvoices({ limit: 10, offset: 0, status: "LUNAS" })).items.find((i) => i.invoice_number === "TG-L2")!;
+    expect(l2.paid_at).not.toBeNull();
+
+    // yang sudah lunas tidak berubah lagi walau pengadaan mengirim status lain
+    const again = await peng.pengadaanService.handle(inv({ invoice_number: "TG-L1", status: "MENDATANG", total_amount: 1 }));
+    expect(again.duplicate).toBe(true);
+    expect((await peng.pengadaanService.listInvoices({ limit: 10, offset: 0, status: "MENDATANG" })).total).toBe(0);
+  });
+
   it("riwayat tagihan lunas: yang terbaru dibayar di atas, total lunas per klien, tagihan klien lain tidak ikut", async () => {
     const id = async (r: unknown) => (r as { invoice: { id: string } }).invoice.id;
     const a = await id(await peng.pengadaanService.handle(inv({ invoice_number: "TG-A", total_amount: 1_000_000 })));
