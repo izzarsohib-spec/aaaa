@@ -1,7 +1,7 @@
 import { and, asc, count, desc, eq, gte, inArray, isNull, sql } from "drizzle-orm";
 import { schema, type Executor, type Tx } from "@/db";
 
-const { users, products, pengadaanReceipts, pengadaanInvoices } = schema;
+const { users, products, pengadaanReceipts, pengadaanIssues, pengadaanInvoices, titipanClients, titipanMoves } = schema;
 
 export const INTEGRATION_EMAIL = "integrasi-pengadaan@sistem.local";
 
@@ -80,8 +80,11 @@ export const pengadaanRepo = {
     const [row] = await tx.update(pengadaanInvoices).set(v).where(eq(pengadaanInvoices.id, id)).returning();
     return row;
   },
-  listInvoices: async (ex: Executor, o: { limit: number; offset: number; status?: InvoiceStatus }) => {
-    const where = o.status ? eq(pengadaanInvoices.status, o.status) : undefined;
+  listInvoices: async (ex: Executor, o: { limit: number; offset: number; status?: InvoiceStatus; clientId?: string }) => {
+    const where = and(
+      o.status ? eq(pengadaanInvoices.status, o.status) : undefined,
+      o.clientId ? eq(pengadaanInvoices.clientId, o.clientId) : undefined,
+    );
     const [{ total }] = await ex.select({ total: count() }).from(pengadaanInvoices).where(where);
     const items = await ex
       .select()
@@ -92,7 +95,7 @@ export const pengadaanRepo = {
       .offset(o.offset);
     return { items, total };
   },
-  upcomingAggregate: async (ex: Executor, today: string) => {
+  upcomingAggregate: async (ex: Executor, today: string, clientId?: string) => {
     const [row] = await ex
       .select({
         count: count(),
@@ -101,7 +104,66 @@ export const pengadaanRepo = {
         overdue: sql<number>`(count(*) filter (where ${pengadaanInvoices.dueDate} < ${today}))::int`,
       })
       .from(pengadaanInvoices)
-      .where(eq(pengadaanInvoices.status, "MENDATANG"));
+      .where(and(eq(pengadaanInvoices.status, "MENDATANG"), clientId ? eq(pengadaanInvoices.clientId, clientId) : undefined));
     return row;
   },
+
+  /* ---- Titipan seragam: klien, buku stok, pengeluaran ---- */
+  findClientByCode: async (ex: Executor, code: string) => {
+    const [row] = await ex.select().from(titipanClients).where(eq(sql`lower(${titipanClients.code})`, code.toLowerCase()));
+    return row ?? null;
+  },
+  listClients: (ex: Executor) => ex.select().from(titipanClients).orderBy(asc(titipanClients.name)),
+  insertMoves: async (tx: Tx, rows: (typeof titipanMoves.$inferInsert)[]) => {
+    if (rows.length) await tx.insert(titipanMoves).values(rows);
+  },
+  findIssue: async (ex: Executor, issueNo: string) => {
+    const [row] = await ex.select().from(pengadaanIssues).where(eq(pengadaanIssues.issueNo, issueNo));
+    return row ?? null;
+  },
+  insertIssue: async (tx: Tx, v: typeof pengadaanIssues.$inferInsert) => {
+    const [row] = await tx.insert(pengadaanIssues).values(v).returning();
+    return row;
+  },
+  /** Stok titipan per produk untuk satu klien: masuk, keluar, dan sisa (masuk - keluar). */
+  stockByClient: (ex: Executor, clientId: string) =>
+    ex
+      .select({
+        product_id: products.id,
+        sku: products.sku,
+        name: products.name,
+        category: products.category,
+        unit: products.unit,
+        masuk: sql<number>`coalesce(sum(case when ${titipanMoves.direction} = 'IN' then ${titipanMoves.quantity} else 0 end), 0)::int`,
+        keluar: sql<number>`coalesce(sum(case when ${titipanMoves.direction} = 'OUT' then ${titipanMoves.quantity} else 0 end), 0)::int`,
+        terakhir: sql<string | null>`max(${titipanMoves.docDate})`,
+      })
+      .from(titipanMoves)
+      .innerJoin(products, eq(products.id, titipanMoves.productId))
+      .where(eq(titipanMoves.clientId, clientId))
+      .groupBy(products.id, products.sku, products.name, products.category, products.unit)
+      .orderBy(asc(products.name)),
+  /** Ringkasan stok titipan per klien (jumlah jenis barang, total masuk/keluar). */
+  stockTotalsByClient: (ex: Executor) =>
+    ex
+      .select({
+        client_id: titipanMoves.clientId,
+        items: sql<number>`count(distinct ${titipanMoves.productId})::int`,
+        masuk: sql<number>`coalesce(sum(case when ${titipanMoves.direction} = 'IN' then ${titipanMoves.quantity} else 0 end), 0)::int`,
+        keluar: sql<number>`coalesce(sum(case when ${titipanMoves.direction} = 'OUT' then ${titipanMoves.quantity} else 0 end), 0)::int`,
+      })
+      .from(titipanMoves)
+      .groupBy(titipanMoves.clientId),
+  /** Tagihan belum dibayar per klien. */
+  upcomingByClient: (ex: Executor, today: string) =>
+    ex
+      .select({
+        client_id: pengadaanInvoices.clientId,
+        count: count(),
+        total: sql<number>`coalesce(sum(${pengadaanInvoices.totalAmount}), 0)::bigint`,
+        overdue: sql<number>`(count(*) filter (where ${pengadaanInvoices.dueDate} < ${today}))::int`,
+      })
+      .from(pengadaanInvoices)
+      .where(eq(pengadaanInvoices.status, "MENDATANG"))
+      .groupBy(pengadaanInvoices.clientId),
 };

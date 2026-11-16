@@ -220,12 +220,50 @@ export const orderEvents = pgTable(
 /* ------------------------------------------- integrasi pengadaan (Ray Mitra) */
 export const invoiceStatus = pgEnum("PengadaanInvoiceStatus", ["MENDATANG", "LUNAS", "DIBATALKAN"]);
 
+/** Klien Mas Wahyu yang barangnya dititipkan (saat ini PT Ray Mitra Perkasa). */
+export const titipanClients = pgTable("titipan_clients", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  createdAt: createdAt(),
+});
+
+export const titipanDirection = pgEnum("TitipanDirection", ["IN", "OUT"]);
+
+/** Buku besar stok titipan: IN = barang datang di klien, OUT = barang dikirim klien ke lokasinya. Sisa = IN - OUT. */
+export const titipanMoves = pgTable(
+  "titipan_moves",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => titipanClients.id, fk),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, fk),
+    direction: titipanDirection("direction").notNull(),
+    quantity: integer("quantity").notNull(),
+    docNo: text("doc_no").notNull(),
+    docDate: text("doc_date").notNull(),
+    notes: text("notes"),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index("titipan_moves_client_product_idx").on(t.clientId, t.productId),
+    uniqueIndex("titipan_moves_doc_uq").on(t.docNo, t.productId, t.direction),
+    check("titipan_moves_qty_pos", sql`${t.quantity} > 0`),
+  ],
+);
+
 /** Barang datang yang dikirim sistem pengadaan; receipt_no unik supaya kiriman ulang tidak menambah stok dua kali. */
 export const pengadaanReceipts = pgTable(
   "pengadaan_receipts",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     receiptNo: text("receipt_no").notNull().unique(),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => titipanClients.id, fk),
     poNumber: text("po_number"),
     receivedDate: text("received_date").notNull(),
     notes: text("notes"),
@@ -236,12 +274,34 @@ export const pengadaanReceipts = pgTable(
   (t) => [index("pengadaan_receipts_created_idx").on(t.createdAt)],
 );
 
+/** Barang keluar dari titipan (pengiriman klien ke lokasi); idempoten per issue_no. */
+export const pengadaanIssues = pgTable(
+  "pengadaan_issues",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    issueNo: text("issue_no").notNull().unique(),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => titipanClients.id, fk),
+    poNumber: text("po_number"),
+    issuedDate: text("issued_date").notNull(),
+    notes: text("notes"),
+    items: jsonb("items").$type<{ sku: string; name: string; quantity: number }[]>().notNull(),
+    totalQty: integer("total_qty").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("pengadaan_issues_created_idx").on(t.createdAt)],
+);
+
 /** Tagihan dari pengadaan; di-upsert berdasarkan invoice_number. */
 export const pengadaanInvoices = pgTable(
   "pengadaan_invoices",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     invoiceNumber: text("invoice_number").notNull().unique(),
+    clientId: uuid("client_id")
+      .notNull()
+      .references(() => titipanClients.id, fk),
     issuedDate: text("issued_date").notNull(),
     dueDate: text("due_date"),
     totalAmount: integer("total_amount").notNull(),

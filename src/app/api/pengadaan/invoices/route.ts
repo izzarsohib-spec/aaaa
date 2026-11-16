@@ -9,6 +9,7 @@ export const GET = route({ roles: ["ADMIN"] }, async (ctx) => {
   const p = pageParams(ctx.query, ["due_date"], "due_date");
   const raw = ctx.query.get("status");
   const status = STATUSES.find((s) => s === raw);
-  const { items, total } = await pengadaanService.listInvoices({ limit: p.limit, offset: p.offset, status });
+  const client = ctx.query.get("client") ?? undefined;
+  const { items, total } = await pengadaanService.listInvoices({ limit: p.limit, offset: p.offset, status, client });
   return ok(paged(items, total, p.page, p.limit));
 });

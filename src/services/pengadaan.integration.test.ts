@@ -6,7 +6,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 const TEST_URL = process.env.TEST_DATABASE_URL;
 if (TEST_URL) process.env.DATABASE_URL = TEST_URL;
 
-describe.skipIf(!TEST_URL)("integrasi pengadaan", () => {
+describe.skipIf(!TEST_URL)("integrasi pengadaan (titipan seragam)", () => {
   let dbm: typeof import("@/db");
   let svc: typeof import("@/services");
   let peng: typeof import("@/services/pengadaan");
@@ -22,8 +22,11 @@ describe.skipIf(!TEST_URL)("integrasi pengadaan", () => {
   beforeEach(async () => {
     await dbm.getDb().execute(
       sql.raw(
-        "TRUNCATE pengadaan_receipts, pengadaan_invoices, stock_adjustments, sale_items, sales, products, users RESTART IDENTITY CASCADE",
+        "TRUNCATE titipan_moves, pengadaan_issues, pengadaan_receipts, pengadaan_invoices, titipan_clients, stock_adjustments, sale_items, sales, products, users RESTART IDENTITY CASCADE",
       ),
+    );
+    await dbm.getDb().execute(
+      sql.raw("INSERT INTO titipan_clients (code, name) VALUES ('RMP', 'PT Ray Mitra Perkasa'), ('ABC', 'PT Contoh Klien')"),
     );
     const mk = (sku: string, name: string, stock: number) =>
       svc.productService.create(
@@ -37,14 +40,17 @@ describe.skipIf(!TEST_URL)("integrasi pengadaan", () => {
     await dbm.closeDb();
   });
 
-  const stockOf = async (id: string) =>
+  const productStock = async (id: string) =>
     (await svc.productService.list("ADMIN", { limit: 100, offset: 0, search: "", sortBy: "name", sortOrder: "asc" })).items.find(
       (p) => p.id === id,
     )!.current_stock;
+  const left = async (code: string, sku: string) =>
+    (await peng.pengadaanService.clientStock(code)).items.find((i) => i.sku === sku)?.qty_left;
 
   const goods = (over: Record<string, unknown> = {}) =>
     ({
       type: "goods_received",
+      client: "RMP",
       receipt_no: "BD-1",
       po_number: "PO-530",
       received_date: "2026-11-10",
@@ -56,36 +62,108 @@ describe.skipIf(!TEST_URL)("integrasi pengadaan", () => {
       ...over,
     }) as Parameters<typeof peng.pengadaanService.handle>[0];
 
-  it("barang datang menambah stok, SKU kembar digabung, dan tercatat sebagai mutasi IN", async () => {
+  const issued = (over: Record<string, unknown> = {}) =>
+    ({
+      type: "goods_issued",
+      client: "RMP",
+      issue_no: "BK-1",
+      issued_date: "2026-11-12",
+      items: [{ sku: "SRG-001", quantity: 4 }],
+      ...over,
+    }) as Parameters<typeof peng.pengadaanService.handle>[0];
+
+  it("barang datang menambah stok TITIPAN klien (SKU kembar digabung) dan tidak mengubah stok produk toko", async () => {
     const r = await peng.pengadaanService.handle(goods());
     expect(r.duplicate).toBe(false);
-    expect(await stockOf(ids.a)).toBe(17);
-    expect(await stockOf(ids.b)).toBe(3);
-    const adj = await svc.stockService.list({ limit: 10, offset: 0 });
-    expect(adj.total).toBe(2);
-    expect(adj.items.every((i) => i.type === "IN" && i.notes.includes("PO-530"))).toBe(true);
+    expect(await left("RMP", "SRG-001")).toBe(7);
+    expect(await left("RMP", "SPT-001")).toBe(3);
+    // stok eceran toko tidak tersentuh dan tidak ada mutasi stok toko
+    expect(await productStock(ids.a)).toBe(10);
+    expect(await productStock(ids.b)).toBe(0);
+    expect((await svc.stockService.list({ limit: 10, offset: 0 })).total).toBe(0);
     const list = await peng.pengadaanService.listReceipts({ limit: 10, offset: 0 });
     expect(list.items[0].total_qty).toBe(10);
   });
 
-  it("kiriman ulang dengan receipt_no sama tidak menambah stok dua kali", async () => {
+  it("kiriman ulang dengan receipt_no sama tidak menambah stok titipan dua kali", async () => {
     await peng.pengadaanService.handle(goods());
     const again = await peng.pengadaanService.handle(goods());
     expect(again.duplicate).toBe(true);
-    expect(await stockOf(ids.a)).toBe(17);
+    expect(await left("RMP", "SRG-001")).toBe(7);
   });
 
-  it("SKU tidak dikenal menolak seluruh kiriman (stok tak berubah, tidak tercatat)", async () => {
+  it("barang keluar mengurangi stok titipan, idempoten per issue_no, dan mencatat total masuk/keluar", async () => {
+    await peng.pengadaanService.handle(goods());
+    const out = await peng.pengadaanService.handle(issued());
+    expect(out.duplicate).toBe(false);
+    expect(await left("RMP", "SRG-001")).toBe(3);
+    const again = await peng.pengadaanService.handle(issued());
+    expect(again.duplicate).toBe(true);
+    expect(await left("RMP", "SRG-001")).toBe(3);
+    const row = (await peng.pengadaanService.clientStock("RMP")).items.find((i) => i.sku === "SRG-001")!;
+    expect(row).toMatchObject({ qty_in: 7, qty_out: 4, qty_left: 3, last_date: "2026-11-12" });
+    expect(await productStock(ids.a)).toBe(10);
+  });
+
+  it("barang keluar lebih banyak dari yang masuk tetap tercatat dan sisanya minus (tidak memblokir antrean)", async () => {
+    await peng.pengadaanService.handle(issued({ items: [{ sku: "SRG-001", quantity: 2 }] }));
+    expect(await left("RMP", "SRG-001")).toBe(-2);
+  });
+
+  it("SKU tidak dikenal menolak seluruh kiriman (stok titipan tak berubah, tidak tercatat)", async () => {
     await expect(
       peng.pengadaanService.handle(goods({ items: [{ sku: "SRG-001", quantity: 5 }, { sku: "XXX-999", quantity: 1 }] })),
     ).rejects.toMatchObject({ status: 422, code: "SKU_NOT_FOUND" });
-    expect(await stockOf(ids.a)).toBe(10);
+    expect((await peng.pengadaanService.clientStock("RMP")).items).toHaveLength(0);
     expect((await peng.pengadaanService.listReceipts({ limit: 10, offset: 0 })).total).toBe(0);
+    await expect(peng.pengadaanService.handle(issued({ items: [{ sku: "XXX-999", quantity: 1 }] }))).rejects.toMatchObject({
+      code: "SKU_NOT_FOUND",
+    });
+  });
+
+  it("klien tidak dikenal ditolak, dan stok titipan terpisah per klien", async () => {
+    await expect(peng.pengadaanService.handle(goods({ client: "NOPE" }))).rejects.toMatchObject({
+      status: 422,
+      code: "CLIENT_NOT_FOUND",
+    });
+    await peng.pengadaanService.handle(goods());
+    await peng.pengadaanService.handle(goods({ client: "ABC", receipt_no: "BD-2", items: [{ sku: "SRG-001", quantity: 1 }] }));
+    expect(await left("RMP", "SRG-001")).toBe(7);
+    expect(await left("ABC", "SRG-001")).toBe(1);
+    await expect(peng.pengadaanService.clientStock("NOPE")).rejects.toMatchObject({ status: 404 });
+  });
+
+  it("kiriman tanpa field client dianggap klien RMP (kompatibel dengan pengirim lama)", async () => {
+    const { pengadaanEventSchema } = await import("@/lib/validation");
+    const parsed = pengadaanEventSchema.parse({
+      type: "goods_received",
+      receipt_no: "BD-9",
+      received_date: "2026-11-10",
+      items: [{ sku: "SRG-001", quantity: 1 }],
+    });
+    expect(parsed.client).toBe("RMP");
+    await peng.pengadaanService.handle(parsed);
+    expect(await left("RMP", "SRG-001")).toBe(1);
+  });
+
+  it("daftar klien menampilkan sisa stok titipan dan tagihan belum dibayar per klien", async () => {
+    await peng.pengadaanService.handle(goods());
+    await peng.pengadaanService.handle(issued());
+    await peng.pengadaanService.handle(inv({ total_amount: 2_000_000 }));
+    await peng.pengadaanService.handle(inv({ invoice_number: "TG-A", client: "ABC", total_amount: 700_000 }));
+    const clients = await peng.pengadaanService.listClients(new Date("2026-11-14T03:00:00Z"));
+    const rmp = clients.find((c) => c.code === "RMP")!;
+    const abc = clients.find((c) => c.code === "ABC")!;
+    expect(rmp).toMatchObject({ item_count: 2, qty_in: 10, qty_out: 4, qty_left: 6, unpaid_count: 1, unpaid_total: 2_000_000 });
+    expect(abc).toMatchObject({ item_count: 0, qty_left: 0, unpaid_count: 1, unpaid_total: 700_000 });
+    const onlyAbc = await peng.pengadaanService.listInvoices({ limit: 10, offset: 0, client: "ABC" });
+    expect(onlyAbc.items.map((i) => i.invoice_number)).toEqual(["TG-A"]);
   });
 
   const inv = (over: Record<string, unknown> = {}) =>
     ({
       type: "invoice",
+      client: "RMP",
       invoice_number: "TG-1",
       issued_date: "2026-11-10",
       due_date: "2026-11-30",

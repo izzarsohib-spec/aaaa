@@ -68,3 +68,10 @@
 - Test: 5 unit test tanda tangan, 5 integration test (stok, idempotensi, SKU tak dikenal, upsert tagihan, lunas).
 
 - Tagihan dari pengadaan boleh tanpa jatuh tempo (`due_date` opsional, migrasi 0003); tampil "Tanpa jatuh tempo", diurutkan paling akhir, tidak dihitung lewat tempo. Kolom daftar Barang datang dinamai "No. dokumen / PO" karena memuat nomor surat jalan atau faktur dari pengadaan. Kontrak diuji ujung ke ujung dengan pengirim pengadaan (inti `kirim-ke-toko`): stok bertambah, kiriman ulang tidak dobel, SKU tak dikenal ditolak, tagihan di-upsert dan bisa dibatalkan.
+
+## 2026-11-16 - Titipan Seragam (stok dan tagihan per klien)
+- Menu baru **Titipan Seragam** (khusus ADMIN): daftar klien titipan Mas Wahyu, saat ini PT Ray Mitra Perkasa (kode `RMP`). Tiap klien punya dua sub halaman: **Stok** (masuk, keluar, sisa per barang, cari, sembunyikan sisa 0, peringatan bila sisa minus) dan **Tagihan** (belum dibayar / sudah lunas, tandai lunas).
+- Kiriman dari pengadaan kini terikat klien (field `client`, default `RMP` bila tidak dikirim). **Barang datang (`goods_received`) menambah stok titipan klien, bukan stok produk toko** (stok eceran dan mutasi stok toko tidak lagi tersentuh). Jenis baru **`goods_issued`** (barang keluar, idempoten per `issue_no`) mengurangi stok titipan; sisa boleh minus supaya antrean pengiriman tidak terblokir.
+- Skema (migrasi 0004, aman untuk tabel berisi): `titipan_clients` (diisi RMP), `titipan_moves` (buku besar IN/OUT), `pengadaan_issues`, kolom `client_id` pada `pengadaan_receipts` dan `pengadaan_invoices` (baris lama otomatis ke RMP).
+- API: `GET /api/titipan/clients`, `GET /api/titipan/[code]/stock`, `GET /api/pengadaan/invoices?client=`.
+- Uji: 11 uji integrasi pengadaan (titipan, keluar, klien, tagihan per klien) dan seluruh suite (63 uji) lulus.
