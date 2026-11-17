@@ -89,3 +89,7 @@
 ## 2026-11-16 - Status lunas otomatis dari pengadaan
 - Kiriman `invoice` dari pengadaan kini boleh berstatus **`LUNAS`** dengan `paid_date` opsional (tanggal pembayaran terakhir, WIB; bila kosong memakai waktu terima). Tagihan yang masih menunggu berubah jadi lunas lengkap dengan tanggal bayar, dan tagihan baru yang sudah lunas langsung masuk sebagai lunas. Tagihan yang sudah lunas (ditandai Mas Wahyu atau dari pengadaan) tetap tidak ditimpa kiriman susulan.
 - Uji: 1 uji integrasi baru; 14 uji pengadaan dan 66 uji seluruhnya lulus.
+
+## 2026-11-17 - Kategori Seragam
+- Kategori "Seragam Satpam" diganti "Seragam" (filter katalog, menu, form produk, grosir). Sepatu, Topi, Atribut tetap terpisah.
+- Migrasi 0005: produk berkategori lama dipindah ke "Seragam".

@@ -262,7 +262,7 @@ function ProductDialog({
         </Field>
         <Field label="Kategori toko online" error={errors.category}>
           {(a) => (
-            <Select {...a} name="category" defaultValue={p?.category ?? "Seragam Satpam"}>
+            <Select {...a} name="category" defaultValue={p?.category ?? "Seragam"}>
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>
                   {c}

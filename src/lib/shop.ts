@@ -22,7 +22,7 @@ export const SHIRT_SIZES = ["S", "M", "L", "XL", "XXL", "L4", "L5", "L6"] as con
 export const PANTS_SIZES = ["28", "30", "32", "34", "36", "38", "40", "42", "44", "46", "48"] as const;
 
 /** Seragam wajib memilih ukuran baju dan celana. */
-export const needsSize = (category: string) => category === "Seragam Satpam";
+export const needsSize = (category: string) => category === "Seragam";
 export interface SizeRow {
   size: string;
   qty: number;
@@ -43,7 +43,7 @@ export function sizeLabel(shirts: SizeRow[], pants: SizeRow[]) {
   return "Baju " + f(shirts) + " | Celana " + f(pants);
 }
 
-export const CATEGORIES = ["Seragam Satpam", "Sepatu", "Topi", "Atribut", "Lainnya"] as const;
+export const CATEGORIES = ["Seragam", "Sepatu", "Topi", "Atribut", "Lainnya"] as const;
 
 /** Ongkir tetap (estimasi). Dihitung ulang di server, tidak dipercaya dari klien. */
 export const SHIPPING = [

@@ -10,8 +10,8 @@ import { STORE, whatsappLink } from "@/lib/shop";
 
 /* Empat produk unggulan di banner; foto diambil dari produk katalog bila sudah diunggah. */
 const HERO = [
-  { label: "Seragam Safari", category: "Seragam Satpam", match: "safari" },
-  { label: "Seragam PDH SUS", category: "Seragam Satpam", match: "sus" },
+  { label: "Seragam Safari", category: "Seragam", match: "safari" },
+  { label: "Seragam PDH SUS", category: "Seragam", match: "sus" },
   { label: "Sepatu PDH Doof", category: "Sepatu", match: "doof" },
   { label: "Rompi", category: "Atribut", match: "rompi", fallback: "/produk/rompi-security.jpg" },
 ];

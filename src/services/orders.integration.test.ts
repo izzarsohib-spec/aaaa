@@ -33,7 +33,7 @@ describe.skipIf(!TEST_URL)("toko online + pesanan", () => {
     );
     adminId = (await svc.userService.create({ email: "a@x.id", name: "Admin", password: "password123", role: "ADMIN" })).id;
     const p = await svc.productService.create(
-      { sku: "SRG-1", name: "Seragam", unit: "pcs", category: "Seragam Satpam", cost_price: 10000, selling_price: 15000, current_stock: 10 },
+      { sku: "SRG-1", name: "Seragam", unit: "pcs", category: "Seragam", cost_price: 10000, selling_price: 15000, current_stock: 10 },
       "ADMIN",
     );
     pid = p.id;

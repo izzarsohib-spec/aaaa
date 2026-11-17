@@ -9,7 +9,7 @@ import { CartProvider, useCart } from "./cart";
 const NAV = [
   { href: "/", label: "Beranda" },
   { href: "/katalog", label: "Semua Produk" },
-  { href: "/katalog?category=Seragam%20Satpam", label: "Seragam" },
+  { href: "/katalog?category=Seragam", label: "Seragam" },
   { href: "/katalog?category=Sepatu", label: "Sepatu" },
   { href: "/katalog?category=Atribut", label: "Atribut" },
   { href: "/grosir", label: "Grosir & Custom Logo" },

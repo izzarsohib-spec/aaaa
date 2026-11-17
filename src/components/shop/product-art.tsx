@@ -1,7 +1,7 @@
 /* Ilustrasi pengganti foto produk (dipakai bila image_url kosong). */
 
 const ART: Record<string, { bg: string; shape: React.ReactNode }> = {
-  "Seragam Satpam": {
+  "Seragam": {
     bg: "#efe6d2",
     shape: (
       <g>
