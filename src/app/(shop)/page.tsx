@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui";
 import { ProductArt } from "@/components/shop/product-art";
 import { ProductCard, type ShopProduct } from "@/components/shop/product-card";
 import { api, type Paged } from "@/lib/client";
-import { STORE, whatsappLink } from "@/lib/shop";
+import { STORE, isUniform, whatsappLink } from "@/lib/shop";
 
 /* Empat produk unggulan di banner; foto diambil dari produk katalog bila sudah diunggah. */
 const HERO = [
@@ -70,7 +70,7 @@ export default function HomePage() {
         </div>
         <div className="hidden grid-cols-2 gap-3 md:grid">
           {HERO.map((h) => {
-            const inCat = hero?.filter((p) => p.category === h.category && p.image_url) ?? [];
+            const inCat = hero?.filter((p) => (h.category === "Seragam" ? isUniform(p.category) : p.category === h.category) && p.image_url) ?? [];
             const src = inCat.find((p) => p.name.toLowerCase().includes(h.match))?.image_url ?? (h.fallback ? (process.env.NEXT_PUBLIC_BASE_PATH ?? "") + h.fallback : null);
             return <ProductArt key={h.label} category={h.category} name={h.label} src={src} />;
           })}

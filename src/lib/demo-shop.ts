@@ -51,7 +51,7 @@ export function demoShop(pathname: string, h: Helpers): unknown {
     const cat = q.get("category");
     const sort = q.get("sortBy") ?? "newest";
     const list = st.products
-      .filter((p) => !p.deleted && (!cat || p.category === cat) && (q.get("in_stock") !== "1" || p.current_stock > 0) &&
+      .filter((p) => !p.deleted && (!cat || p.category === cat || (cat === "Seragam" && p.category.startsWith("Seragam"))) && (q.get("in_stock") !== "1" || p.current_stock > 0) &&
         (!term || p.name.toLowerCase().includes(term) || p.sku.toLowerCase().includes(term)))
       .sort((a, c) =>
         sort === "price_asc" ? a.selling_price - c.selling_price

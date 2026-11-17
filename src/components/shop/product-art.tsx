@@ -76,7 +76,7 @@ export function ProductArt({ category, name, src, className }: { category: strin
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt={name} loading="lazy" className={"aspect-square w-full rounded-md object-cover " + (className ?? "")} />;
   }
-  const art = ART[category] ?? ART.Lainnya;
+  const art = ART[category === "Seragam Celana" ? "Celana" : category.startsWith("Seragam") ? "Seragam" : category] ?? ART.Lainnya;
   return (
     <div className={"aspect-square w-full overflow-hidden rounded-md " + (className ?? "")} style={{ background: art.bg }}>
       <svg viewBox="0 0 120 120" role="img" aria-label={name} className="h-full w-full">

@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState } from "react";
 import { Alert, Button, Empty, Pagination, Select, Skeleton } from "@/components/ui";
 import { ProductCard, type ShopProduct } from "@/components/shop/product-card";
 import { api, type Paged } from "@/lib/client";
-import { CATEGORIES } from "@/lib/shop";
+import { CATEGORIES, UNIFORM } from "@/lib/shop";
 
 function Catalog() {
   const router = useRouter();
@@ -46,12 +46,16 @@ function Catalog() {
       <aside className="grid content-start gap-5 rounded-lg border border-border bg-surface p-4" aria-label="Filter">
         <fieldset className="grid gap-1.5">
           <legend className="mb-1 text-sm font-semibold">Kategori</legend>
-          {[["", "Semua produk"], ...CATEGORIES.map((c) => [c, c])].map(([value, label]) => (
-            <label key={value} className="flex min-h-8 cursor-pointer items-center gap-2 text-sm">
-              <input type="radio" name="category" checked={category === value} onChange={() => go({ category: value || null })} />
-              {label}
-            </label>
-          ))}
+          {[["", "Semua produk"], [UNIFORM, "Seragam"], ...CATEGORIES.map((c) => [c, c])]
+            .map(([value, label]) => {
+              const sub = value.startsWith(UNIFORM + " ");
+              return (
+                <label key={value} className={"flex min-h-8 cursor-pointer items-center gap-2 text-sm " + (sub ? "ml-6" : "")}>
+                  <input type="radio" name="category" checked={category === value} onChange={() => go({ category: value || null })} />
+                  {sub ? label.slice(UNIFORM.length + 1) : label}
+                </label>
+              );
+            })}
         </fieldset>
         <label className="flex min-h-8 cursor-pointer items-center gap-2 text-sm">
           <input type="checkbox" checked={inStock} onChange={(e) => go({ in_stock: e.target.checked ? "1" : null })} />

@@ -36,7 +36,11 @@ export const shopRepo = {
     const term = "%" + likeEscape(o.search) + "%";
     const where = and(
       isNull(products.deletedAt),
-      o.category ? eq(products.category, o.category) : undefined,
+      o.category === "Seragam"
+        ? or(eq(products.category, "Seragam"), ilike(products.category, "Seragam %"))
+        : o.category
+          ? eq(products.category, o.category)
+          : undefined,
       o.inStockOnly ? sql`${products.currentStock} > 0` : undefined,
       o.search ? or(ilike(products.name, term), ilike(products.sku, term)) : undefined,
     );

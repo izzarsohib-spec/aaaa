@@ -23,7 +23,7 @@ const SIZE_GROUPS: Record<Cat, { key: string; label: string; sizes: string[] }[]
 };
 
 const CATS: { key: Cat; label: string; hint: string; unit: string; categories: string[]; fallback: string[] }[] = [
-  { key: "seragam", label: "Seragam", hint: "Baju dan celana", unit: "potong", categories: ["Seragam"], fallback: ["Seragam"] },
+  { key: "seragam", label: "Seragam", hint: "Setelan, baju, atau celana", unit: "potong", categories: ["Seragam Setelan", "Seragam Baju", "Seragam Celana"], fallback: ["Seragam"] },
   { key: "sepatu", label: "Sepatu", hint: "Pilih ukuran", unit: "pasang", categories: ["Sepatu"], fallback: ["Sepatu PDL", "Sepatu Pantofel", "Sepatu Boots", "Sepatu Safety"] },
   { key: "aksesoris", label: "Aksesoris", hint: "Topi, ikat pinggang, dll.", unit: "pcs", categories: ["Topi", "Atribut"], fallback: ["Topi Baret", "Ikat Pinggang", "Papan Nama", "Peluit & Tali"] },
 ];

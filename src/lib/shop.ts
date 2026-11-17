@@ -21,8 +21,18 @@ export const WHOLESALE_WHATSAPP = "6285703191053";
 export const SHIRT_SIZES = ["S", "M", "L", "XL", "XXL", "L4", "L5", "L6"] as const;
 export const PANTS_SIZES = ["28", "30", "32", "34", "36", "38", "40", "42", "44", "46", "48"] as const;
 
-/** Seragam wajib memilih ukuran baju dan celana. */
-export const needsSize = (category: string) => category === "Seragam";
+/** Seragam dipecah: setelan (baju + celana), baju saja, celana saja. */
+export const UNIFORM = "Seragam";
+export const UNIFORM_CATEGORIES = ["Seragam Setelan", "Seragam Baju", "Seragam Celana"] as const;
+export const isUniform = (category: string) => category === UNIFORM || category.startsWith(UNIFORM + " ");
+
+/** Ukuran apa yang wajib dipilih pembeli untuk kategori ini. */
+export function sizesNeeded(category: string) {
+  return {
+    shirt: category === "Seragam Setelan" || category === "Seragam Baju" || category === UNIFORM,
+    pants: category === "Seragam Setelan" || category === "Seragam Celana" || category === UNIFORM,
+  };
+}
 export interface SizeRow {
   size: string;
   qty: number;
@@ -40,10 +50,10 @@ export const sumRows = (rows: SizeRow[]) => rows.reduce((a, r) => a + (r.size &&
 /** Contoh: "Baju L×3, XL×1 | Celana 30×2, 32×2". */
 export function sizeLabel(shirts: SizeRow[], pants: SizeRow[]) {
   const f = (rows: SizeRow[]) => rows.map((r) => r.size + "×" + r.qty).join(", ");
-  return "Baju " + f(shirts) + " | Celana " + f(pants);
+  return [shirts.length ? "Baju " + f(shirts) : "", pants.length ? "Celana " + f(pants) : ""].filter(Boolean).join(" | ");
 }
 
-export const CATEGORIES = ["Seragam", "Sepatu", "Topi", "Atribut", "Lainnya"] as const;
+export const CATEGORIES = [...UNIFORM_CATEGORIES, "Sepatu", "Topi", "Atribut", "Lainnya"] as const;
 
 /** Ongkir tetap (estimasi). Dihitung ulang di server, tidak dipercaya dari klien. */
 export const SHIPPING = [

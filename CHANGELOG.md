@@ -93,3 +93,8 @@
 ## 2026-11-17 - Kategori Seragam
 - Kategori "Seragam Satpam" diganti "Seragam" (filter katalog, menu, form produk, grosir). Sepatu, Topi, Atribut tetap terpisah.
 - Migrasi 0005: produk berkategori lama dipindah ke "Seragam".
+
+## 2026-11-17 - Seragam dipecah: Setelan, Baju, Celana
+- Kategori Seragam jadi tiga: "Seragam Setelan" (baju+celana), "Seragam Baju", "Seragam Celana". Filter katalog menampilkan "Seragam" (semua) dengan tiga sub-pilihan.
+- Pilihan ukuran menyesuaikan: setelan = ukuran baju dan celana, baju saja = ukuran baju, celana saja = ukuran celana.
+- Migrasi 0006: produk lama dipetakan dari nama ("- Baju", "BAJU SAJA", ATASAN, KAOS = Baju; "- Celana", CELANA = Celana; sisanya Setelan).

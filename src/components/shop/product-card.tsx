@@ -7,7 +7,7 @@ import { useState, type ReactNode } from "react";
 import { useCart } from "./cart";
 import { ProductArt } from "./product-art";
 import { SizeBreakdown } from "./size-picker";
-import { PANTS_SIZES, SHIRT_SIZES, mergeRows, needsSize, sizeLabel, sumRows, type SizeRow } from "@/lib/shop";
+import { PANTS_SIZES, SHIRT_SIZES, mergeRows, sizeLabel, sizesNeeded, sumRows, type SizeRow } from "@/lib/shop";
 import { Button, Dialog, Input, useToast } from "@/components/ui";
 
 export interface ShopProduct {
@@ -30,7 +30,8 @@ export function AddForm({ p, mode, onClose, inline, secondary }: { p: ShopProduc
   const [shirts, setShirts] = useState<SizeRow[]>([{ size: "", qty: 1 }]);
   const [pants, setPants] = useState<SizeRow[]>([{ size: "", qty: 1 }]);
   const [tried, setTried] = useState(false);
-  const sized = needsSize(p.category);
+  const need = sizesNeeded(p.category);
+  const sized = need.shirt || need.pants;
   const max = Math.max(1, p.current_stock);
   // Jika baru satu baris, jumlahnya ikut jumlah seragam supaya tidak perlu diisi ulang.
   const setQty = (raw: number) => {
@@ -43,11 +44,11 @@ export function AddForm({ p, mode, onClose, inline, secondary }: { p: ShopProduc
   const valid = (rows: SizeRow[]) => sumRows(rows) === qty && rows.every((r) => r.size && r.qty > 0);
   const submit = () => {
     if (sized) {
-      if (!valid(shirts) || !valid(pants)) {
+      if ((need.shirt && !valid(shirts)) || (need.pants && !valid(pants))) {
         setTried(true);
         return;
       }
-      cart.add(p.id, qty, p.current_stock, sizeLabel(mergeRows(shirts, SHIRT_SIZES), mergeRows(pants, PANTS_SIZES)), true);
+      cart.add(p.id, qty, p.current_stock, sizeLabel(need.shirt ? mergeRows(shirts, SHIRT_SIZES) : [], need.pants ? mergeRows(pants, PANTS_SIZES) : []), true);
     } else {
       cart.add(p.id, qty, p.current_stock);
     }
@@ -82,9 +83,9 @@ export function AddForm({ p, mode, onClose, inline, secondary }: { p: ShopProduc
         <p className="text-lg font-bold text-navy">{formatRupiah(p.selling_price * qty)}</p>
       </div>
       {sized && (
-        <div className={"grid gap-4 " + (inline ? "" : "sm:grid-cols-2")}>
-          <SizeBreakdown title="Ukuran baju" options={SHIRT_SIZES} rows={shirts} onChange={setShirts} total={qty} error={tried} listClass={inline ? "h-32" : "h-44"} />
-          <SizeBreakdown title="Ukuran celana" options={PANTS_SIZES} rows={pants} onChange={setPants} total={qty} error={tried} listClass={inline ? "h-32" : "h-44"} />
+        <div className={"grid gap-4 " + (inline || !(need.shirt && need.pants) ? "" : "sm:grid-cols-2")}>
+          {need.shirt && <SizeBreakdown title="Ukuran baju" options={SHIRT_SIZES} rows={shirts} onChange={setShirts} total={qty} error={tried} listClass={inline ? "h-32" : "h-44"} />}
+          {need.pants && <SizeBreakdown title="Ukuran celana" options={PANTS_SIZES} rows={pants} onChange={setPants} total={qty} error={tried} listClass={inline ? "h-32" : "h-44"} />}
         </div>
       )}
       <div className="grid gap-2 sm:grid-cols-2">
